@@ -33,15 +33,47 @@
         </select>
       </div>
     </div>
+    <div class="form-row">
+      <div class="form-group"><label>Conteúdo</label><input type="text" name="conteudo" placeholder="Ex: Cap. 1 a 3"></div>
+      <div class="form-group"><label>Observação</label><input type="text" name="observacao" placeholder="Ex: Valendo 10 pontos"></div>
+    </div>
     <button type="submit" class="btn btn-success">Agendar</button>
   </form>
 </div>
+
+{% if pendentes %}
+<div class="card" style="margin-bottom:20px;border-left:4px solid var(--warning)">
+  <div class="card-header"><h2>⏳ Provas Pendentes de Confirmação</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Data</th><th>Turma</th><th>Disciplina</th><th>Conteúdo</th><th>Enviado por</th><th>Ações</th></tr></thead>
+      <tbody>
+        {% for p in pendentes %}
+        <tr>
+          <td><strong>{{ p.data }}</strong></td>
+          <td><span class="badge badge-primary">{{ p.turma }}</span></td>
+          <td>{{ p.disciplina }}</td>
+          <td>{{ p.conteudo or '-' }}</td>
+          <td><small>{{ p.criado_por_funcao }}</small></td>
+          <td class="actions">
+            <form method="POST" action="{{ url_for('prova_confirmar', id=p.id) }}" style="display:inline">
+              <button type="submit" class="btn btn-sm btn-success">✅ Confirmar</button>
+            </form>
+            <a href="{{ url_for('prova_recusar', id=p.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Recusar esta prova?')" style="color:var(--danger)">❌ Recusar</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
 
 <div class="card">
   <div class="card-header"><h2>Próximas Provas</h2></div>
   <div class="table-container">
     <table>
-      <thead><tr><th>Data</th><th>Turma</th><th>Disciplina</th><th>Tipo</th><th>Ações</th></tr></thead>
+      <thead><tr><th>Data</th><th>Turma</th><th>Disciplina</th><th>Tipo</th><th>Conteúdo</th><th>Ações</th></tr></thead>
       <tbody>
         {% for p in provas %}
         <tr>
@@ -49,11 +81,12 @@
           <td><span class="badge badge-primary">{{ p.turma }}</span></td>
           <td>{{ p.disciplina }}</td>
           <td><span class="badge {% if p.tipo == 'Prova' %}badge-danger{% elif p.tipo == 'Trabalho' %}badge-warning{% else %}badge-success{% endif %}">{{ p.tipo }}</span></td>
+          <td>{{ p.conteudo or '-' }}</td>
           <td><a href="{{ url_for('prova_excluir', id=p.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir esta prova?')">🗑️</a></td>
         </tr>
         {% endfor %}
         {% if not provas %}
-        <tr><td colspan="5" class="empty-state">Nenhuma prova agendada</td></tr>
+        <tr><td colspan="6" class="empty-state">Nenhuma prova agendada</td></tr>
         {% endif %}
       </tbody>
     </table>

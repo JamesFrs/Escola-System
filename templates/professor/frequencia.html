@@ -2,6 +2,12 @@
 {% block title %}Frequência — Sistema Escolar (beta){% endblock %}
 {% block page_title %}✅ Frequência{% endblock %}
 {% block content %}
+{% if disc_padrao %}
+<div style="margin-bottom:12px;padding:12px 16px;background:rgba(34,153,234,0.08);border-radius:8px;border-left:4px solid var(--primary)">
+  <strong>Sua disciplina:</strong> {{ disc_padrao }}
+</div>
+{% endif %}
+
 <div class="card" style="margin-bottom:20px">
   <div class="card-header"><h2>Registrar Frequência</h2></div>
   <form method="GET" action="{{ url_for('frequencia') }}" style="display:flex;gap:12px;align-items:end;flex-wrap:wrap;padding:16px 20px">
@@ -17,7 +23,6 @@
     <div class="form-group" style="min-width:160px">
       <label>Disciplina</label>
       <select name="disciplina" required onchange="this.form.submit()">
-        <option value="">Selecione...</option>
         {% for d in disciplinas %}
         <option value="{{ d }}" {{ 'selected' if d == disc_sel }}>{{ d }}</option>
         {% endfor %}
@@ -74,12 +79,6 @@
       <button type="submit" class="btn btn-success">💾 Salvar Frequência</button>
     </div>
   </form>
-</div>
-{% endif %}
-
-{% if turma_sel and disc_sel %}
-<div style="margin-top:16px">
-  <a href="{{ url_for('frequencia_historico', codigo='-') }}?disciplina={{ disc_sel }}" class="btn btn-outline" style="pointer-events:none;opacity:0.5">Ver histórico de um aluno</a>
 </div>
 {% endif %}
 {% endblock %}

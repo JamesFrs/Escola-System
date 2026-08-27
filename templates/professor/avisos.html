@@ -27,22 +27,51 @@
   <div class="card-header"><h2>Avisos Publicados</h2></div>
   <div class="table-container">
     <table>
-      <thead><tr><th>Título</th><th>Descrição</th><th>Turma</th><th>Data</th><th>Ações</th></tr></thead>
+      <thead><tr><th>Título</th><th>Descrição</th><th>Turma</th><th>Autor</th><th>Data</th><th>Ações</th></tr></thead>
       <tbody>
         {% for a in avisos %}
         <tr>
           <td><strong>{{ a.titulo }}</strong></td>
           <td>{{ a.descricao }}</td>
           <td><span class="badge badge-primary">{{ a.turma }}</span></td>
+          <td><small>{{ a.criado_por }} <span class="badge {% if a.criado_por_funcao == 'professor' %}badge-success{% else %}badge-warning{% endif %}" style="font-size:0.7rem">{{ a.criado_por_funcao }}</span></small></td>
           <td>{{ a.data }}</td>
-          <td><a href="{{ url_for('aviso_excluir', id=a.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir este aviso?')">🗑️</a></td>
+          <td class="actions">
+            <button class="btn btn-sm btn-outline" onclick="editarAviso({{ a.id }}, '{{ a.titulo }}', `{{ a.descricao }}`, '{{ a.turma }}')">✏️</button>
+            <a href="{{ url_for('aviso_excluir', id=a.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir este aviso?')" style="color:var(--danger)">🗑️</a>
+          </td>
         </tr>
         {% endfor %}
         {% if not avisos %}
-        <tr><td colspan="5" class="empty-state">Nenhum aviso publicado</td></tr>
+        <tr><td colspan="6" class="empty-state">Nenhum aviso publicado</td></tr>
         {% endif %}
       </tbody>
     </table>
   </div>
 </div>
+
+<div id="modalEditar" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--bg-card);border-radius:16px;padding:24px;width:500px;box-shadow:var(--shadow-lg)">
+    <h3 style="margin-bottom:16px">✏️ Editar Aviso</h3>
+    <form method="POST" id="formEditar">
+      <div class="form-group"><label>Título</label><input type="text" name="titulo" id="inputTitulo" required></div>
+      <div class="form-group"><label>Descrição</label><textarea name="descricao" id="inputDescricao" rows="3" required></textarea></div>
+      <div class="form-group"><label>Turma</label><select name="turma" id="inputTurma">{% for t in turmas %}<option value="{{ t }}">{{ t }}</option>{% endfor %}</select></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+function editarAviso(id, titulo, descricao, turma) {
+  document.getElementById('formEditar').action = '/avisos/editar/' + id;
+  document.getElementById('inputTitulo').value = titulo;
+  document.getElementById('inputDescricao').value = descricao;
+  document.getElementById('inputTurma').value = turma;
+  document.getElementById('modalEditar').style.display = 'flex';
+}
+function fecharModal() { document.getElementById('modalEditar').style.display = 'none'; }
+</script>
 {% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ professor.nome }} — Sistema Escolar (beta){% endblock %}
+{% block page_title %}👨‍🏫 Perfil do Professor{% endblock %}
+{% block content %}
+<div class="card" style="max-width:700px">
+  <div style="padding:24px;display:flex;gap:20px;align-items:flex-start">
+    <div style="width:80px;height:80px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:36px;color:white;font-weight:700;flex-shrink:0">
+      {{ professor.nome[0] }}
+    </div>
+    <div style="flex:1">
+      <h2 style="margin:0 0 8px">{{ professor.nome }}</h2>
+      <p style="color:var(--text-secondary);margin:0 0 16px">✉️ {{ professor.email }}</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="info-box">
+          <label>Disciplina Principal</label>
+          <p><span class="badge badge-primary">{{ professor.disciplina or 'Não definida' }}</span></p>
+        </div>
+        <div class="info-box">
+          <label>Turmas</label>
+          <p>{{ professor.turmas or 'Não atribuídas' }}</p>
+        </div>
+        <div class="info-box">
+          <label>Email Institucional</label>
+          <p>{{ professor.email_institucional or 'Não informado' }}</p>
+        </div>
+        <div class="info-box">
+          <label>Horário de Atendimento</label>
+          <p>{{ professor.horario_atendimento or 'Não informado' }}</p>
+        </div>
+      </div>
+
+      {% if professor.bio %}
+      <div style="margin-top:16px">
+        <label style="font-weight:600;display:block;margin-bottom:4px">Sobre</label>
+        <p style="color:var(--text-secondary);line-height:1.6">{{ professor.bio }}</p>
+      </div>
+      {% endif %}
+
+      <div style="margin-top:20px;display:flex;gap:8px">
+        <a href="{{ url_for('professor_editar', id=professor.id) }}" class="btn btn-primary">✏️ Editar</a>
+        <a href="{{ url_for('professores_lista') }}" class="btn btn-outline">← Voltar</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -22,11 +22,13 @@
         <div class="nav-section">Cadastros</div>
         <a href="{{ url_for('alunos') }}" class="{% if request.endpoint in ('alunos','aluno_novo','aluno_editar','aluno_perfil') %}active{% endif %}">👨‍🎓 Alunos</a>
         <a href="{{ url_for('turmas_lista') }}" class="{% if request.endpoint in ('turmas_lista','turma_alunos','turma_representantes') %}active{% endif %}">🏫 Turmas</a>
+        <a href="{{ url_for('professores_lista') }}" class="{% if request.endpoint in ('professores_lista','professor_novo','professor_editar','professor_perfil') %}active{% endif %}">👨‍🏫 Professores</a>
         <div class="nav-section">Escolar</div>
         <a href="{{ url_for('notas') }}" class="{% if request.endpoint == 'notas' %}active{% endif %}">📝 Notas</a>
         <a href="{{ url_for('frequencia') }}" class="{% if request.endpoint in ('frequencia','frequencia_historico') %}active{% endif %}">✅ Frequência</a>
         <a href="{{ url_for('frequencia_pendente') }}" class="{% if request.endpoint == 'frequencia_pendente' %}active{% endif %}">⏳ Freq. Pendente</a>
         <a href="{{ url_for('provas') }}" class="{% if request.endpoint == 'provas' %}active{% endif %}">📅 Provas</a>
+        <a href="{{ url_for('horarios') }}" class="{% if request.endpoint == 'horarios' %}active{% endif %}">🕐 Horários</a>
         <a href="{{ url_for('pendencias') }}" class="{% if request.endpoint == 'pendencias' %}active{% endif %}">⚠️ Pendências</a>
         <div class="nav-section">Representantes</div>
         <a href="{{ url_for('demandas_prof') }}" class="{% if request.endpoint == 'demandas_prof' %}active{% endif %}">📩 Demandas</a>
@@ -34,6 +36,7 @@
         <div class="nav-section">Comunicação</div>
         <a href="{{ url_for('avisos') }}" class="{% if request.endpoint == 'avisos' %}active{% endif %}">📢 Avisos</a>
         <a href="{{ url_for('agenda') }}" class="{% if request.endpoint == 'agenda' %}active{% endif %}">📆 Agenda</a>
+        <a href="{{ url_for('calendario_prof') }}" class="{% if request.endpoint == 'calendario_prof' %}active{% endif %}">📅 Calendário</a>
         <div class="nav-section">Sistema</div>
         <a href="{{ url_for('historico') }}" class="{% if request.endpoint == 'historico' %}active{% endif %}">📋 Histórico</a>
       </nav>
@@ -81,6 +84,7 @@
         <a href="{{ url_for('rep_reunioes') }}" class="{% if request.endpoint == 'rep_reunioes' %}active{% endif %}">🤝 Reuniões</a>
         <div class="nav-section">Agenda</div>
         <a href="{{ url_for('rep_calendario') }}" class="{% if request.endpoint == 'rep_calendario' %}active{% endif %}">📆 Calendário</a>
+        <a href="{{ url_for('rep_historico') }}" class="{% if request.endpoint == 'rep_historico' %}active{% endif %}">📋 Histórico</a>
       </nav>
       <div class="sidebar-footer">
         <span style="color:var(--text-sidebar);font-size:13px">👤 {{ session.user_name }}</span>

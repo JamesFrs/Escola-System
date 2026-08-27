@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Histórico — Representante{% endblock %}
+{% block page_title_rep %}📋 Histórico de Atividades{% endblock %}
+{% block content_rep %}
+<div class="card">
+  <div class="card-header"><h2>Atividades da Turma: {{ turma }}</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Data/Hora</th><th>Representante</th><th>Ação</th><th>Detalhes</th></tr></thead>
+      <tbody>
+        {% for a in atividades %}
+        <tr>
+          <td><small>{{ a.data }}</small></td>
+          <td><strong>{{ a.nome_rep or a.representante }}</strong></td>
+          <td>{{ a.acao }}</td>
+          <td><small>{{ a.detalhes or '-' }}</small></td>
+        </tr>
+        {% endfor %}
+        {% if not atividades %}
+        <tr><td colspan="4" class="empty-state">Nenhuma atividade registrada</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

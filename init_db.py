@@ -13,7 +13,12 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nome TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
-        senha TEXT NOT NULL
+        senha TEXT NOT NULL,
+        disciplina TEXT DEFAULT '',
+        turmas TEXT DEFAULT '',
+        email_institucional TEXT DEFAULT '',
+        horario_atendimento TEXT DEFAULT '',
+        bio TEXT DEFAULT ''
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS turmas (
@@ -186,12 +191,23 @@ def init_db():
         data TEXT DEFAULT (datetime('now','localtime'))
     )""")
 
+    c.execute("""CREATE TABLE IF NOT EXISTS horarios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        turma TEXT NOT NULL,
+        disciplina TEXT NOT NULL,
+        dia TEXT NOT NULL,
+        hora_inicio TEXT NOT NULL,
+        hora_fim TEXT NOT NULL,
+        sala TEXT DEFAULT '',
+        criado_por TEXT DEFAULT ''
+    )""")
+
     # Seed professor
     existing = c.execute("SELECT id FROM professores WHERE email='admin@escola.com'").fetchone()
     if not existing:
         senha_hash = generate_password_hash('123456')
-        c.execute("INSERT INTO professores (nome, email, senha) VALUES (?, ?, ?)",
-                  ('Administrador', 'admin@escola.com', senha_hash))
+        c.execute("INSERT INTO professores (nome, email, senha, disciplina, turmas, bio) VALUES (?, ?, ?, ?, ?, ?)",
+                  ('Administrador', 'admin@escola.com', senha_hash, 'Matemática', '1º Ano A, 2º Ano B', 'Professor administrador do sistema'))
 
     # Seed turmas
     default_turmas = ['1º Ano A', '1º Ano B', '2º Ano A', '2º Ano B', '3º Ano A', '3º Ano B']

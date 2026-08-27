@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Horários — Sistema Escolar (beta){% endblock %}
+{% block page_title %}🕐 Horários das Turmas{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>Selecionar Turma</h2></div>
+  <form method="GET" style="padding:16px 20px;display:flex;gap:12px;align-items:flex-end">
+    <div class="form-group" style="flex:1;margin:0">
+      <label>Turma</label>
+      <select name="turma" onchange="this.form.submit()">
+        {% for t in turmas %}
+        <option value="{{ t }}" {{ 'selected' if t == turma_sel }}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+</div>
+
+{% if turma_sel %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>Editar Horários — {{ turma_sel }}</h2></div>
+  <form method="POST">
+    <input type="hidden" name="turma" value="{{ turma_sel }}">
+    <div class="table-container">
+      <table>
+        <thead><tr><th>Disciplina</th><th>Dia</th><th>Início</th><th>Fim</th><th>Sala</th><th></th></tr></thead>
+        <tbody id="horarios-body">
+          {% for h in horarios %}
+          <tr>
+            <td>
+              <select name="horario_disciplina[]" class="form-control-sm">
+                {% for d in disciplinas %}<option value="{{ d }}" {{ 'selected' if h.disciplina == d }}>{{ d }}</option>{% endfor %}
+              </select>
+            </td>
+            <td>
+              <select name="horario_dia[]" class="form-control-sm">
+                {% for dia in dias %}<option value="{{ dia }}" {{ 'selected' if h.dia == dia }}>{{ dia }}</option>{% endfor %}
+              </select>
+            </td>
+            <td><input type="time" name="horario_inicio[]" value="{{ h.hora_inicio }}" class="form-control-sm" required></td>
+            <td><input type="time" name="horario_fim[]" value="{{ h.hora_fim }}" class="form-control-sm" required></td>
+            <td><input type="text" name="horario_sala[]" value="{{ h.sala }}" class="form-control-sm" placeholder="Sala" style="width:80px"></td>
+            <td><a href="{{ url_for('horario_excluir', id=h.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Remover?')" style="color:var(--danger)">🗑️</a></td>
+          </tr>
+          {% endfor %}
+          <tr id="novo-horario" style="display:none">
+            <td>
+              <select name="horario_disciplina[]" class="form-control-sm">
+                {% for d in disciplinas %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+              </select>
+            </td>
+            <td>
+              <select name="horario_dia[]" class="form-control-sm">
+                {% for dia in dias %}<option value="{{ dia }}">{{ dia }}</option>{% endfor %}
+              </select>
+            </td>
+            <td><input type="time" name="horario_inicio[]" class="form-control-sm" required></td>
+            <td><input type="time" name="horario_fim[]" class="form-control-sm" required></td>
+            <td><input type="text" name="horario_sala[]" class="form-control-sm" placeholder="Sala" style="width:80px"></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="padding:16px 20px;display:flex;gap:8px">
+      <button type="button" class="btn btn-outline" onclick="addHorario()">+ Adicionar Horário</button>
+      <button type="submit" class="btn btn-success">💾 Salvar Horários</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-header"><h2>Visualização Semanal</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Horário</th>{% for dia in dias %}<th>{{ dia }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% set horarios_unicos = horarios|map(attribute='hora_inicio')|unique|list|sort %}
+        {% for hora in horarios_unicos %}
+        <tr>
+          <td><strong>{{ hora }}</strong></td>
+          {% for dia in dias %}
+          <td>
+            {% for h in horarios %}
+              {% if h.dia == dia and h.hora_inicio == hora %}
+              <span class="badge badge-primary" style="font-size:0.75rem">{{ h.disciplina }}</span>
+              {% if h.sala %}<br><small>{{ h.sala }}</small>{% endif %}
+              {% endif %}
+            {% endfor %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+        {% if not horarios %}
+        <tr><td colspan="{{ dias|length + 1 }}" class="empty-state">Nenhum horário configurado</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<script>
+function addHorario() {
+  document.getElementById('novo-horario').style.display = 'table-row';
+}
+</script>
+{% endblock %}

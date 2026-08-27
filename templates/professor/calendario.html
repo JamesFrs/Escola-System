@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Calendário — Sistema Escolar (beta){% endblock %}
+{% block page_title %}📆 Calendário Integrado{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>Filtrar por Turma</h2></div>
+  <form method="GET" style="padding:16px 20px;display:flex;gap:12px;align-items:flex-end">
+    <div class="form-group" style="flex:1;margin:0">
+      <label>Turma</label>
+      <select name="turma" onchange="this.form.submit()">
+        {% for t in turmas %}
+        <option value="{{ t }}" {{ 'selected' if t == turma_sel }}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-header"><h2>Eventos — {{ turma_sel }}</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Criado por</th></tr></thead>
+      <tbody>
+        {% for e in eventos %}
+        <tr>
+          <td><strong>{{ e.data }}</strong></td>
+          <td>
+            {% if e.tipo == 'Prova' %}
+              <span class="badge badge-danger">📅 {{ e.tipo }}</span>
+            {% elif e.tipo == 'Reunião' %}
+              <span class="badge badge-primary">🤝 {{ e.tipo }}</span>
+            {% else %}
+              <span class="badge badge-success">📆 {{ e.tipo }}</span>
+            {% endif %}
+          </td>
+          <td>{{ e.titulo if e.titulo else (e.conteudo if e.conteudo else e.assuntos) }}</td>
+          <td><small>{{ e.criado_por or '-' }}</small></td>
+        </tr>
+        {% endfor %}
+        {% if not eventos %}
+        <tr><td colspan="4" class="empty-state">Nenhum evento encontrado</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

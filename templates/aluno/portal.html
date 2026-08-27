@@ -144,4 +144,65 @@
   </div>
 </div>
 {% endif %}
+
+{% if demandas %}
+<div class="card" style="margin-top:20px">
+  <div class="card-header"><h2>📩 Demandas da Turma</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Título</th><th>Categoria</th><th>Status</th><th>Data</th></tr></thead>
+      <tbody>
+        {% for d in demandas %}
+        <tr>
+          <td><strong>{{ d.titulo }}</strong><br><small>{{ d.descricao[:60] }}{% if d.descricao|length > 60 %}...{% endif %}</small></td>
+          <td><span class="badge badge-primary">{{ d.categoria }}</span></td>
+          <td><span class="badge {% if d.status == 'Resolvida' %}badge-success{% elif d.status == 'Em análise' %}badge-warning{% elif d.status == 'Recusada' %}badge-danger{% else %}badge-primary{% endif %}">{{ d.status }}</span></td>
+          <td>{{ d.data }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if sugestoes %}
+<div class="card" style="margin-top:20px">
+  <div class="card-header"><h2>💡 Sugestões da Turma</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Título</th><th>Status</th><th>Data</th></tr></thead>
+      <tbody>
+        {% for s in sugestoes %}
+        <tr>
+          <td><strong>{{ s.titulo }}</strong><br><small>{{ s.descricao[:60] }}{% if s.descricao|length > 60 %}...{% endif %}</small></td>
+          <td><span class="badge {% if s.status == 'Resolvida' %}badge-success{% elif s.status == 'Em análise' %}badge-warning{% elif s.status == 'Recusada' %}badge-danger{% else %}badge-primary{% endif %}">{{ s.status }}</span></td>
+          <td>{{ s.data }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if reunioes %}
+<div class="card" style="margin-top:20px">
+  <div class="card-header"><h2>🤝 Reuniões</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Data</th><th>Assuntos</th><th>Resumo</th></tr></thead>
+      <tbody>
+        {% for r in reunioes %}
+        <tr>
+          <td><strong>{{ r.data }}</strong></td>
+          <td>{{ r.assuntos }}</td>
+          <td>{{ r.resumo or '-' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
 {% endblock %}

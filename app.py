@@ -368,6 +368,10 @@ def frequencia():
     if session.get('user_type') != 'professor':
         return redirect(url_for('login'))
     turmas = get_turmas()
+    # ETAPA 11: Buscar disciplina do professor logado
+    prof = query_db("SELECT disciplina FROM professores WHERE nome=?", [session.get('user_name', '')], one=True)
+    disc_padrao = prof['disciplina'] if prof and prof['disciplina'] else ''
+
     if request.method == 'POST':
         turma = request.form.get('turma')
         disciplina = request.form.get('disciplina')
@@ -391,7 +395,7 @@ def frequencia():
         return redirect(url_for('frequencia'))
 
     turma_sel = request.args.get('turma', '')
-    disc_sel = request.args.get('disciplina', '')
+    disc_sel = request.args.get('disciplina', disc_padrao)
     data_sel = request.args.get('data', datetime.now().strftime('%Y-%m-%d'))
     alunos_freq = []
     if turma_sel and disc_sel and data_sel:
@@ -402,7 +406,8 @@ def frequencia():
             FROM alunos a WHERE a.turma=? ORDER BY a.nome
         """, [disc_sel, turma_sel, data_sel, turma_sel])
     return render_template('professor/frequencia.html', turmas=turmas, turma_sel=turma_sel,
-                           disc_sel=disc_sel, data_sel=data_sel, alunos=alunos_freq, disciplinas=DISCIPLINAS)
+                           disc_sel=disc_sel, data_sel=data_sel, alunos=alunos_freq, disciplinas=DISCIPLINAS,
+                           disc_padrao=disc_padrao)
 
 
 @app.route('/frequencia/historico/<codigo>')
@@ -596,6 +601,19 @@ def aviso_excluir(id):
     execute_db("DELETE FROM avisos WHERE id=?", [id])
     log_historico(session['user_name'], 'Aviso excluído')
     flash('Aviso removido!', 'success')
+    return redirect(url_for('avisos'))
+
+
+@app.route('/avisos/editar/<int:id>', methods=['POST'])
+def aviso_editar(id):
+    if session.get('user_type') != 'professor':
+        return redirect(url_for('login'))
+    titulo = request.form['titulo'].strip()
+    descricao = request.form['descricao'].strip()
+    turma = request.form.get('turma', '')
+    execute_db("UPDATE avisos SET titulo=?, descricao=?, turma=? WHERE id=?", (titulo, descricao, turma, id))
+    log_historico(session['user_name'], f'Aviso editado: {titulo}')
+    flash('Aviso atualizado!', 'success')
     return redirect(url_for('avisos'))
 
 
@@ -934,6 +952,145 @@ def generate_boletim_pdf(aluno, notas, freq_por_disc, total_geral, media_geral, 
     return "\n".join(lines).encode('utf-8')
 
 
+# ==================== PROFESSORES - DIRETÓRIO ====================
+
+@app.route('/professores')
+def professores_lista():
+    if session.get('user_type') != 'professor':
+        return redirect(url_for('login'))
+    lista = query_db("SELECT * FROM professores ORDER BY nome")
+    return render_template('professor/professores_lista.html', professores=lista)
+
+
+@app.route('/professores/novo', methods=['GET', 'POST'])
+def professor_novo():
+    if session.get('user_type') != 'professor':
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        nome = request.form['nome'].strip()
+        email = request.form['email'].strip()
+        senha = generate_password_hash(request.form['senha'])
+        disciplina = request.form.get('disciplina', '')
+        turmas = request.form.get('turmas', '')
+        email_inst = request.form.get('email_institucional', '')
+        horario = request.form.get('horario_atendimento', '')
+        bio = request.form.get('bio', '')
+        try:
+            execute_db("INSERT INTO professores (nome, email, senha, disciplina, turmas, email_institucional, horario_atendimento, bio) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                       (nome, email, senha, disciplina, turmas, email_inst, horario, bio))
+            log_historico(session['user_name'], f'Criou professor: {nome}')
+            flash('Professor cadastrado com sucesso!', 'success')
+            return redirect(url_for('professores_lista'))
+        except Exception:
+            flash('Email já cadastrado!', 'error')
+    return render_template('professor/professor_form.html', professor=None, disciplinas=DISCIPLINAS, turmas=get_turmas())
+
+
+@app.route('/professores/editar/<int:id>', methods=['GET', 'POST'])
+def professor_editar(id):
+    if session.get('user_type') != 'professor':
+        return redirect(url_for('login'))
+    prof = query_db("SELECT * FROM professores WHERE id=?", [id], one=True)
+    if not prof:
+        flash('Professor não encontrado!', 'error')
+        return redirect(url_for('professores_lista'))
+    if request.method == 'POST':
+        nome = request.form['nome'].strip()
+        email = request.form['email'].strip()
+        disciplina = request.form.get('disciplina', '')
+        turmas = request.form.get('turmas', '')
+        email_inst = request.form.get('email_institucional', '')
+        horario = request.form.get('horario_atendimento', '')
+        bio = request.form.get('bio', '')
+        senha = request.form.get('senha', '').strip()
+        if senha:
+            execute_db("UPDATE professores SET nome=?, email=?, senha=?, disciplina=?, turmas=?, email_institucional=?, horario_atendimento=?, bio=? WHERE id=?",
+                       (nome, email, generate_password_hash(senha), disciplina, turmas, email_inst, horario, bio, id))
+        else:
+            execute_db("UPDATE professores SET nome=?, email=?, disciplina=?, turmas=?, email_institucional=?, horario_atendimento=?, bio=? WHERE id=?",
+                       (nome, email, disciplina, turmas, email_inst, horario, bio, id))
+        log_historico(session['user_name'], f'Editou professor: {nome}')
+        flash('Professor atualizado!', 'success')
+        return redirect(url_for('professores_lista'))
+    return render_template('professor/professor_form.html', professor=prof, disciplinas=DISCIPLINAS, turmas=get_turmas())
+
+
+@app.route('/professores/excluir/<int:id>')
+def professor_excluir(id):
+    if session.get('user_type') != 'professor':
+        return redirect(url_for('login'))
+    prof = query_db("SELECT * FROM professores WHERE id=?", [id], one=True)
+    if prof:
+        execute_db("DELETE FROM professores WHERE id=?", [id])
+        log_historico(session['user_name'], f'Excluiu professor: {prof["nome"]}')
+        flash('Professor excluído!', 'success')
+    return redirect(url_for('professores_lista'))
+
+
+@app.route('/professores/perfil/<int:id>')
+def professor_perfil(id):
+    if session.get('user_type') != 'professor':
+        return redirect(url_for('login'))
+    prof = query_db("SELECT * FROM professores WHERE id=?", [id], one=True)
+    if not prof:
+        flash('Professor não encontrado!', 'error')
+        return redirect(url_for('professores_lista'))
+    return render_template('professor/professor_perfil.html', professor=prof)
+
+
+# ==================== HORÁRIOS DAS TURMAS ====================
+
+@app.route('/horarios', methods=['GET', 'POST'])
+def horarios():
+    if session.get('user_type') != 'professor':
+        return redirect(url_for('login'))
+    turmas = get_turmas()
+    if request.method == 'POST':
+        turma = request.form['turma']
+        execute_db("DELETE FROM horarios WHERE turma=?", [turma])
+        disciplinas = request.form.getlist('horario_disciplina[]')
+        dias = request.form.getlist('horario_dia[]')
+        inicio = request.form.getlist('horario_inicio[]')
+        fim = request.form.getlist('horario_fim[]')
+        sala = request.form.getlist('horario_sala[]')
+        for i in range(len(disciplinas)):
+            if disciplinas[i] and dias[i] and inicio[i] and fim[i]:
+                execute_db("INSERT INTO horarios (turma, disciplina, dia, hora_inicio, hora_fim, sala, criado_por) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                           (turma, disciplinas[i], dias[i], inicio[i], fim[i], sala[i] if i < len(sala) else '', session['user_name']))
+        log_historico(session['user_name'], f'Atualizou horários da turma: {turma}')
+        flash('Horários atualizados!', 'success')
+        return redirect(url_for('horarios'))
+    turma_sel = request.args.get('turma', turmas[0] if turmas else '')
+    horarios_lista = query_db("SELECT * FROM horarios WHERE turma=? ORDER BY dia, hora_inicio", [turma_sel]) if turma_sel else []
+    return render_template('professor/horarios.html', turmas=turmas, turma_sel=turma_sel, horarios=horarios_lista, disciplinas=DISCIPLINAS,
+                           dias=['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'])
+
+
+@app.route('/horarios/excluir/<int:id>')
+def horario_excluir(id):
+    if session.get('user_type') != 'professor':
+        return redirect(url_for('login'))
+    h = query_db("SELECT * FROM horarios WHERE id=?", [id], one=True)
+    if h:
+        execute_db("DELETE FROM horarios WHERE id=?", [id])
+        log_historico(session['user_name'], f'Removeu horário: {h["disciplina"]} - {h["dia"]}')
+        flash('Horário removido!', 'success')
+    return redirect(url_for('horarios', turma=h['turma'] if h else ''))
+
+
+@app.route('/calendario')
+def calendario_prof():
+    if session.get('user_type') != 'professor':
+        return redirect(url_for('login'))
+    turmas = get_turmas()
+    turma_sel = request.args.get('turma', turmas[0] if turmas else '')
+    provas = query_db("SELECT *, 'Prova' as tipo FROM provas WHERE turma=? AND status='confirmada' ORDER BY data", [turma_sel]) if turma_sel else []
+    agenda = query_db("SELECT *, 'Agenda' as tipo FROM agenda WHERE turma=? ORDER BY data", [turma_sel]) if turma_sel else []
+    reunioes_db = query_db("SELECT *, 'Reunião' as tipo FROM reunioes WHERE turma=? ORDER BY data", [turma_sel]) if turma_sel else []
+    eventos = sorted(list(provas) + list(agenda) + list(reunioes_db), key=lambda x: x['data'], reverse=True)
+    return render_template('professor/calendario.html', turmas=turmas, turma_sel=turma_sel, eventos=eventos)
+
+
 # ==================== REPRESENTANTE - PAINEL ====================
 
 @app.route('/representante')
@@ -950,10 +1107,12 @@ def rep_dashboard():
     provas_pendentes = query_db("SELECT COUNT(*) as c FROM provas WHERE turma=? AND criado_por=? AND status='pendente'", [turma, codigo], one=True)['c']
     demandas_abertas = query_db("SELECT COUNT(*) as c FROM demandas WHERE turma=? AND status IN ('Enviada','Em análise')", [turma], one=True)['c']
     enquetes_ativas = query_db("SELECT COUNT(*) as c FROM enquetes WHERE turma=? AND ativa=1", [turma], one=True)['c']
+    avisos = query_db("SELECT * FROM avisos WHERE turma=? ORDER BY data DESC LIMIT 5", [turma])
 
     return render_template('representante/dashboard.html', aluno=aluno, turma=turma, funcao=funcao,
                            freq_pendente=freq_pendente, provas_pendentes=provas_pendentes,
-                           demandas_abertas=demandas_abertas, enquetes_ativas=enquetes_ativas)
+                           demandas_abertas=demandas_abertas, enquetes_ativas=enquetes_ativas,
+                           avisos=avisos)
 
 
 @app.route('/representante/frequencia', methods=['GET', 'POST'])
@@ -1294,10 +1453,25 @@ def rep_calendario():
     if session.get('user_type') != 'representante':
         return redirect(url_for('login'))
     turma = session['user_turma']
-    provas = query_db("SELECT * FROM provas WHERE turma=? AND status='confirmada' ORDER BY data", [turma])
-    agenda = query_db("SELECT * FROM agenda WHERE turma=? ORDER BY data", [turma])
-    reunioes = query_db("SELECT * FROM reunioes WHERE turma=? ORDER BY data", [turma])
-    return render_template('representante/calendario.html', provas=provas, agenda=agenda, reunioes=reunioes, turma=turma)
+    provas = query_db("SELECT *, 'Prova' as tipo FROM provas WHERE turma=? AND status='confirmada' ORDER BY data", [turma])
+    agenda = query_db("SELECT *, 'Agenda' as tipo FROM agenda WHERE turma=? ORDER BY data", [turma])
+    reunioes = query_db("SELECT *, 'Reunião' as tipo FROM reunioes WHERE turma=? ORDER BY data", [turma])
+    eventos = sorted(list(provas) + list(agenda) + list(reunioes), key=lambda x: x['data'], reverse=True)
+    return render_template('representante/calendario.html', eventos=eventos, turma=turma)
+
+
+@app.route('/representante/historico')
+def rep_historico():
+    if session.get('user_type') != 'representante':
+        return redirect(url_for('login'))
+    codigo = session['user_codigo']
+    turma = session['user_turma']
+    atividades = query_db("""
+        SELECT a.*, al.nome as nome_rep FROM atividade_representante a
+        LEFT JOIN alunos al ON a.representante = al.codigo
+        WHERE a.turma=? ORDER BY a.data DESC LIMIT 100
+    """, [turma])
+    return render_template('representante/historico.html', atividades=atividades, turma=turma)
 
 
 # ==================== ALUNO PORTAL ====================
@@ -1314,6 +1488,9 @@ def portal_aluno():
     avisos = query_db("SELECT * FROM avisos WHERE turma=? ORDER BY data DESC", [aluno['turma']])
     agenda = query_db("SELECT * FROM agenda WHERE turma=? ORDER BY data", [aluno['turma']])
     enquetes = query_db("SELECT * FROM enquetes WHERE turma=? AND ativa=1 ORDER BY data DESC", [aluno['turma']])
+    demandas = query_db("SELECT * FROM demandas WHERE turma=? ORDER BY data DESC", [aluno['turma']])
+    sugestoes = query_db("SELECT * FROM sugestoes WHERE turma=? ORDER BY data DESC", [aluno['turma']])
+    reunioes = query_db("SELECT * FROM reunioes WHERE turma=? ORDER BY data DESC", [aluno['turma']])
 
     freq_por_disc = query_db("""
         SELECT disciplina, COUNT(*) as total,
@@ -1349,7 +1526,8 @@ def portal_aluno():
                            pendencias=pendencias, provas=provas, avisos=avisos, agenda=agenda,
                            media_geral=media_geral, situacao=situacao,
                            freq_por_disc=freq_por_disc, total_geral=total_geral,
-                           enquetes=enquetes_com_votos)
+                           enquetes=enquetes_com_votos, demandas=demandas,
+                           sugestoes=sugestoes, reunioes=reunioes)
 
 
 @app.route('/portal/votar/<int:enquete_id>', methods=['POST'])

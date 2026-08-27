@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar' if professor else 'Novo' }} Professor — Sistema Escolar (beta){% endblock %}
+{% block page_title %}{{ '✏️ Editar' if professor else '➕ Novo' }} Professor{% endblock %}
+{% block content %}
+<div class="card" style="max-width:700px">
+  <div class="card-header"><h2>{{ 'Editar' if professor else 'Cadastrar' }} Professor</h2></div>
+  <form method="POST">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nome Completo *</label>
+        <input type="text" name="nome" value="{{ professor.nome if professor else '' }}" required placeholder="Nome do professor">
+      </div>
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" name="email" value="{{ professor.email if professor else '' }}" required placeholder="email@escola.com">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Senha {% if not professor %}*{% else %}(deixe vazio para manter){% endif %}</label>
+        <input type="password" name="senha" {{ 'required' if not professor }} placeholder="{{ '••••••' if professor else 'Senha' }}">
+      </div>
+      <div class="form-group">
+        <label>Disciplina Principal *</label>
+        <select name="disciplina" required>
+          <option value="">Selecione...</option>
+          {% for d in disciplinas %}
+          <option value="{{ d }}" {{ 'selected' if professor and professor.disciplina == d }}>{{ d }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Turmas</label>
+        <input type="text" name="turmas" value="{{ professor.turmas if professor else '' }}" placeholder="Ex: 1º Ano A, 2º Ano B">
+      </div>
+      <div class="form-group">
+        <label>Email Institucional</label>
+        <input type="email" name="email_institucional" value="{{ professor.email_institucional if professor else '' }}" placeholder="email@instituicao.edu.br">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Horário de Atendimento</label>
+      <input type="text" name="horario_atendimento" value="{{ professor.horario_atendimento if professor else '' }}" placeholder="Ex: Seg-Sex 14:00-16:00">
+    </div>
+    <div class="form-group">
+      <label>Biografia / Informações Profissionais</label>
+      <textarea name="bio" rows="3" placeholder="Formação, experiência, etc.">{{ professor.bio if professor else '' }}</textarea>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:flex-end">
+      <a href="{{ url_for('professores_lista') }}" class="btn btn-outline">Cancelar</a>
+      <button type="submit" class="btn btn-primary">{{ 'Salvar Alterações' if professor else 'Cadastrar' }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

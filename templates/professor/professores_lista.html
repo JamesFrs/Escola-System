@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Professores — Sistema Escolar (beta){% endblock %}
+{% block page_title %}👨‍🏫 Professores{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+  <p style="color:var(--text-secondary)">Diretório de professores da instituição</p>
+  <a href="{{ url_for('professor_novo') }}" class="btn btn-success">+ Novo Professor</a>
+</div>
+
+<div class="grid-2">
+  {% for p in professores %}
+  <div class="card" style="cursor:pointer" onclick="window.location='{{ url_for('professor_perfil', id=p.id) }}'">
+    <div style="padding:20px;display:flex;gap:16px;align-items:center">
+      <div style="width:56px;height:56px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:24px;color:white;font-weight:700">
+        {{ p.nome[0] }}
+      </div>
+      <div style="flex:1">
+        <h3 style="margin:0;font-size:1.05rem">{{ p.nome }}</h3>
+        <p style="margin:4px 0 0;color:var(--text-secondary);font-size:0.85rem">
+          {{ p.disciplina or 'Disciplina não definida' }}
+        </p>
+        <p style="margin:2px 0 0;color:var(--text-secondary);font-size:0.8rem">
+          ✉️ {{ p.email }}
+        </p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a href="{{ url_for('professor_editar', id=p.id) }}" class="btn btn-sm btn-outline" onclick="event.stopPropagation()">✏️</a>
+        <a href="{{ url_for('professor_excluir', id=p.id) }}" class="btn btn-sm btn-outline" onclick="event.stopPropagation();return confirm('Excluir este professor?')" style="color:var(--danger)">🗑️</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  {% if not professores %}
+  <div class="card" style="grid-column:span 2">
+    <div class="empty-state" style="padding:40px">Nenhum professor cadastrado</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
