@@ -42,7 +42,10 @@
       </nav>
       <div class="sidebar-footer">
         <span style="color:var(--text-sidebar);font-size:13px">👤 {{ session.user_name }}</span>
-        <a href="{{ url_for('logout') }}">🚪 Sair</a>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema">🌓</button>
+          <a href="{{ url_for('logout') }}">🚪 Sair</a>
+        </div>
       </div>
     </aside>
     <main class="main-content">
@@ -88,7 +91,10 @@
       </nav>
       <div class="sidebar-footer">
         <span style="color:var(--text-sidebar);font-size:13px">👤 {{ session.user_name }}</span>
-        <a href="{{ url_for('logout') }}">🚪 Sair</a>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema">🌓</button>
+          <a href="{{ url_for('logout') }}">🚪 Sair</a>
+        </div>
       </div>
     </aside>
     <main class="main-content">
@@ -140,6 +146,16 @@
       const dd = document.getElementById('resultadosBusca');
       if (dd && !e.target.closest('.topbar-search')) { dd.style.display = 'none'; }
     });
+
+    // Dark/Light mode
+    function getTheme() { return localStorage.getItem('theme') || 'light'; }
+    function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); }
+    function toggleTheme() {
+      const next = getTheme() === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', next);
+      applyTheme(next);
+    }
+    applyTheme(getTheme());
   </script>
   {% block scripts %}{% endblock %}
 </body>
