@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Avisos — E.E.G.{% endblock %}
+{% block page_title %}📢 Mural de Avisos{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>Publicar Aviso</h2></div>
+  <form method="POST" style="max-width:600px">
+    <div class="form-group">
+      <label>Título</label>
+      <input type="text" name="titulo" placeholder="Ex: Reunião de pais" required>
+    </div>
+    <div class="form-group">
+      <label>Descrição</label>
+      <textarea name="descricao" rows="3" placeholder="Descreva o aviso..." required></textarea>
+    </div>
+    <div class="form-group">
+      <label>Turma</label>
+      <select name="turma" required>
+        {% for t in turmas %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-success">Publicar</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-header"><h2>Avisos Publicados</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Título</th><th>Descrição</th><th>Turma</th><th>Data</th><th>Ações</th></tr></thead>
+      <tbody>
+        {% for a in avisos %}
+        <tr>
+          <td><strong>{{ a.titulo }}</strong></td>
+          <td>{{ a.descricao }}</td>
+          <td><span class="badge badge-primary">{{ a.turma }}</span></td>
+          <td>{{ a.data }}</td>
+          <td><a href="{{ url_for('aviso_excluir', id=a.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir este aviso?')">🗑️</a></td>
+        </tr>
+        {% endfor %}
+        {% if not avisos %}
+        <tr><td colspan="5" class="empty-state">Nenhum aviso publicado</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

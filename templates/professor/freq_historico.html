@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Histórico de Frequência — {{ aluno.nome }}{% endblock %}
+{% block page_title %}📋 Frequência — {{ aluno.nome }}{% endblock %}
+{% block content %}
+<div class="card-header" style="margin-bottom:20px">
+  <a href="{{ url_for('frequencia') }}" class="btn btn-outline">← Voltar</a>
+</div>
+
+<!-- Resumo por disciplina -->
+<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom:24px">
+  {% for f in freq_por_disc %}
+  <div class="stat-card">
+    <div class="stat-info">
+      <h3>{{ f.faltas or 0 }}</h3>
+      <p>{{ f.disciplina }}</p>
+      <small style="color:var(--text-secondary)">{{ f.presencas }}/{{ f.total }} aulas ({{ ((f.presencas/f.total)*100)|round(1) if f.total > 0 else 0 }}%)</small>
+    </div>
+  </div>
+  {% endfor %}
+  {% if total_geral and total_geral.t and total_geral.t > 0 %}
+  <div class="stat-card" style="border:2px solid var(--danger)">
+    <div class="stat-info">
+      <h3>{{ total_geral.f or 0 }}</h3>
+      <p style="font-weight:700">Total Geral</p>
+      <small style="color:var(--text-secondary)">{{ total_geral.t - (total_geral.f or 0) }}/{{ total_geral.t }} aulas ({{ ((total_geral.t - (total_geral.f or 0))/total_geral.t*100)|round(1) }}%)</small>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Filtro por disciplina -->
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>Filtrar por Disciplina</h2></div>
+  <div style="padding:16px 20px;display:flex;gap:8px;flex-wrap:wrap">
+    <a href="{{ url_for('frequencia_historico', codigo=aluno.codigo) }}" class="btn btn-sm {{ 'btn-primary' if not disc_sel else 'btn-outline' }}">Todas</a>
+    {% for d in disciplinas %}
+    <a href="{{ url_for('frequencia_historico', codigo=aluno.codigo) }}?disciplina={{ d }}" class="btn btn-sm {{ 'btn-primary' if disc_sel == d else 'btn-outline' }}">{{ d }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Registros -->
+<div class="card">
+  <div class="card-header"><h2>Registro de Chamada</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Data</th><th>Disciplina</th><th>Turma</th><th>Situação</th></tr></thead>
+      <tbody>
+        {% for r in registros %}
+        <tr>
+          <td><strong>{{ r.data }}</strong></td>
+          <td>{{ r.disciplina }}</td>
+          <td><span class="badge badge-primary">{{ r.turma }}</span></td>
+          <td>
+            {% if r.presente == 1 %}
+              <span class="badge badge-success">✅ Presente</span>
+            {% else %}
+              <span class="badge badge-danger">❌ Falta</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not registros %}
+        <tr><td colspan="4" class="empty-state">Nenhum registro de frequência encontrado</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Histórico — E.E.G.{% endblock %}
+{% block page_title %}📋 Histórico de Alterações{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Data/Hora</th><th>Professor</th><th>Ação</th><th>Aluno</th></tr></thead>
+      <tbody>
+        {% for r in registros %}
+        <tr>
+          <td>{{ r.data_hora }}</td>
+          <td><strong>{{ r.professor }}</strong></td>
+          <td>{{ r.acao }}</td>
+          <td>{{ r.aluno or '-' }}</td>
+        </tr>
+        {% endfor %}
+        {% if not registros %}
+        <tr><td colspan="4" class="empty-state">Nenhum registro ainda</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

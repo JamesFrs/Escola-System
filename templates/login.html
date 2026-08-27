@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E.E.G. — Sistema Escolar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; background: #f0f4f8; }
+
+    /* ===== LEFT PANEL ===== */
+    .login-left {
+      flex: 1; background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #2563eb 100%);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      padding: 60px; position: relative; overflow: hidden; color: #fff;
+    }
+    .login-left::before {
+      content: ''; position: absolute; top: -80px; left: -80px;
+      width: 300px; height: 300px; border-radius: 50%;
+      background: rgba(255,255,255,0.04);
+    }
+    .login-left::after {
+      content: ''; position: absolute; bottom: -120px; right: -60px;
+      width: 400px; height: 400px; border-radius: 50%;
+      background: rgba(255,255,255,0.03);
+    }
+    .left-content { position: relative; z-index: 2; text-align: center; max-width: 400px; }
+    .left-icon { font-size: 72px; margin-bottom: 20px; filter: drop-shadow(0 4px 20px rgba(0,0,0,0.3)); }
+    .left-content h1 { font-size: 42px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+    .left-content h2 { font-size: 18px; font-weight: 500; opacity: 0.85; margin-bottom: 32px; }
+    .left-features { display: flex; flex-direction: column; gap: 16px; text-align: left; }
+    .feature-item {
+      display: flex; align-items: center; gap: 14px;
+      background: rgba(255,255,255,0.08); backdrop-filter: blur(10px);
+      padding: 14px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.2s;
+    }
+    .feature-item:hover { transform: translateX(6px); }
+    .feature-icon { font-size: 22px; width: 40px; height: 40px; background: rgba(255,255,255,0.12); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .feature-text { font-size: 14px; line-height: 1.4; }
+    .feature-text strong { display: block; font-size: 15px; }
+
+    /* ===== RIGHT PANEL ===== */
+    .login-right {
+      width: 520px; display: flex; flex-direction: column; justify-content: center;
+      align-items: center; padding: 60px 40px; background: #fff;
+      box-shadow: -10px 0 40px rgba(0,0,0,0.06);
+    }
+    .login-form-wrapper { width: 100%; max-width: 380px; }
+    .login-form-header { text-align: center; margin-bottom: 36px; }
+    .login-form-header .logo-mobile { display: none; font-size: 40px; margin-bottom: 8px; }
+    .login-form-header h2 { font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+    .login-form-header p { font-size: 14px; color: #64748b; }
+
+    /* Tabs */
+    .login-tabs { display: flex; background: #f1f5f9; border-radius: 10px; padding: 4px; margin-bottom: 28px; }
+    .login-tab {
+      flex: 1; padding: 11px 16px; border: none; background: transparent; border-radius: 8px;
+      font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.25s;
+      font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .login-tab.active { background: #fff; color: #2563eb; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .login-tab:hover:not(.active) { color: #334155; }
+
+    /* Forms */
+    .login-form { display: none; }
+    .login-form.active { display: block; animation: fadeUp 0.3s ease; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .input-group { margin-bottom: 18px; position: relative; }
+    .input-group label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; }
+    .input-icon-wrap { position: relative; }
+    .input-icon-wrap .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none; }
+    .input-group input {
+      width: 100%; padding: 12px 14px 12px 42px; border: 2px solid #e2e8f0; border-radius: 10px;
+      font-size: 15px; font-family: inherit; color: #1e293b; background: #f8fafc;
+      transition: all 0.2s;
+    }
+    .input-group input::placeholder { color: #94a3b8; }
+    .input-group input:focus { outline: none; border-color: #2563eb; background: #fff; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+
+    .btn-login {
+      width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 15px;
+      font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 6px;
+    }
+    .btn-prof { background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; }
+    .btn-prof:hover { background: linear-gradient(135deg, #1d4ed8, #2563eb); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,0.35); }
+    .btn-aluno { background: linear-gradient(135deg, #16a34a, #22c55e); color: #fff; }
+    .btn-aluno:hover { background: linear-gradient(135deg, #15803d, #16a34a); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(22,163,74,0.35); }
+
+    /* Alert */
+    .alert-box {
+      padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
+    }
+    .alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+    /* Footer */
+    .login-footer { text-align: center; margin-top: 28px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+    .login-footer p { font-size: 12px; color: #94a3b8; }
+    .login-footer code { background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 12px; color: #475569; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      body { flex-direction: column; }
+      .login-left { min-height: 280px; padding: 40px 30px; }
+      .left-content h1 { font-size: 32px; }
+      .left-content h2 { font-size: 15px; margin-bottom: 20px; }
+      .left-features { display: none; }
+      .login-left::before, .login-left::after { display: none; }
+      .login-right { width: 100%; min-height: calc(100vh - 280px); padding: 40px 24px; box-shadow: none; }
+      .login-form-header .logo-mobile { display: block; }
+    }
+    @media (max-width: 480px) {
+      .login-left { min-height: 220px; padding: 30px 20px; }
+      .left-content h1 { font-size: 26px; }
+      .login-right { padding: 32px 20px; }
+      .login-form-wrapper { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <!-- LEFT PANEL -->
+  <div class="login-left">
+    <div class="left-content">
+      <div class="left-icon">🎓</div>
+      <h1>E.E.G.</h1>
+      <h2>Sistema de Gestão Escolar</h2>
+      <div class="left-features">
+        <div class="feature-item">
+          <div class="feature-icon">📊</div>
+          <div class="feature-text"><strong>Dashboard Inteligente</strong>Gráficos e indicadores em tempo real</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📝</div>
+          <div class="feature-text"><strong>Gestão Completa</strong>Notas, frequência, provas e boletins</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">👨‍🎓</div>
+          <div class="feature-text"><strong>Portal do Aluno</strong>Acesso seguro às informações escolares</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-text"><strong>Segurança Total</strong>Senhas criptografadas e controle de acesso</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="login-right">
+    <div class="login-form-wrapper">
+      <div class="login-form-header">
+        <div class="logo-mobile">🎓</div>
+        <h2>Bem-vindo de volta</h2>
+        <p>Escolha seu portal de acesso</p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for cat, msg in messages %}
+            <div class="alert-box alert-{{ cat }}">⚠️ {{ msg }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <!-- TABS -->
+      <div class="login-tabs">
+        <button class="login-tab active" onclick="switchTab('prof')" id="tab-prof">👨‍🏫 Professor</button>
+        <button class="login-tab" onclick="switchTab('aluno')" id="tab-aluno">👨‍🎓 Aluno</button>
+      </div>
+
+      <!-- PROFESSOR FORM -->
+      <form class="login-form active" id="form-prof" action="{{ url_for('login_professor') }}" method="POST">
+        <div class="input-group">
+          <label>Email</label>
+          <div class="input-icon-wrap">
+            <span class="icon">📧</span>
+            <input type="email" name="email" placeholder="seu@email.com" required autofocus>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Senha</label>
+          <div class="input-icon-wrap">
+            <span class="icon">🔒</span>
+            <input type="password" name="senha" placeholder="Sua senha" required>
+          </div>
+        </div>
+        <button type="submit" class="btn-login btn-prof">Entrar como Professor →</button>
+      </form>
+
+      <!-- ALUNO FORM -->
+      <form class="login-form" id="form-aluno" action="{{ url_for('login_aluno') }}" method="POST">
+        <div class="input-group">
+          <label>Nome Completo</label>
+          <div class="input-icon-wrap">
+            <span class="icon">👤</span>
+            <input type="text" name="nome" placeholder="Digite seu nome completo" required>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Código do Aluno</label>
+          <div class="input-icon-wrap">
+            <span class="icon">🔑</span>
+            <input type="text" name="codigo" placeholder="Ex: 20260045" required>
+          </div>
+        </div>
+        <button type="submit" class="btn-login btn-aluno">Entrar como Aluno →</button>
+      </form>
+
+      <div class="login-footer">
+        <p>Acesso padrão professor: <code>admin@escola.com</code> / <code>123456</code></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function switchTab(tab) {
+      document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.login-form').forEach(f => f.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      document.getElementById('form-' + tab).classList.add('active');
+    }
+  </script>
+</body>
+</html>

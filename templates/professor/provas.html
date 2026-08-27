@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Provas — E.E.G.{% endblock %}
+{% block page_title %}📅 Provas{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>Agendar Nova Prova</h2></div>
+  <form method="POST" style="max-width:800px">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Turma</label>
+        <select name="turma" required>
+          {% for t in turmas %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Disciplina</label>
+        <select name="disciplina" required>
+          {% for d in disciplinas %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Data</label>
+        <input type="date" name="data" required>
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select name="tipo">
+          <option value="Prova">Prova</option>
+          <option value="Trabalho">Trabalho</option>
+          <option value="Teste">Teste</option>
+        </select>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-success">Agendar</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-header"><h2>Próximas Provas</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Data</th><th>Turma</th><th>Disciplina</th><th>Tipo</th><th>Ações</th></tr></thead>
+      <tbody>
+        {% for p in provas %}
+        <tr>
+          <td><strong>{{ p.data }}</strong></td>
+          <td><span class="badge badge-primary">{{ p.turma }}</span></td>
+          <td>{{ p.disciplina }}</td>
+          <td><span class="badge {% if p.tipo == 'Prova' %}badge-danger{% elif p.tipo == 'Trabalho' %}badge-warning{% else %}badge-success{% endif %}">{{ p.tipo }}</span></td>
+          <td><a href="{{ url_for('prova_excluir', id=p.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir esta prova?')">🗑️</a></td>
+        </tr>
+        {% endfor %}
+        {% if not provas %}
+        <tr><td colspan="5" class="empty-state">Nenhuma prova agendada</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Agenda — E.E.G.{% endblock %}
+{% block page_title %}📆 Agenda Escolar{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>Agendar Evento</h2></div>
+  <form method="POST" style="max-width:600px">
+    <div class="form-group">
+      <label>Título</label>
+      <input type="text" name="titulo" placeholder="Ex: Prova de Matemática" required>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tipo</label>
+        <select name="tipo" required>
+          <option value="Prova">Prova</option>
+          <option value="Trabalho">Trabalho</option>
+          <option value="Evento">Evento</option>
+          <option value="Feriado">Feriado</option>
+          <option value="Reunião">Reunião</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Turma</label>
+        <select name="turma" required>
+          {% for t in turmas %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Data</label>
+      <input type="date" name="data" required>
+    </div>
+    <button type="submit" class="btn btn-success">Agendar</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-header"><h2>Eventos</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Data</th><th>Título</th><th>Tipo</th><th>Turma</th><th>Ações</th></tr></thead>
+      <tbody>
+        {% for e in eventos %}
+        <tr>
+          <td><strong>{{ e.data }}</strong></td>
+          <td>{{ e.titulo }}</td>
+          <td><span class="badge {% if e.tipo == 'Prova' %}badge-danger{% elif e.tipo == 'Feriado' %}badge-success{% else %}badge-primary{% endif %}">{{ e.tipo }}</span></td>
+          <td><span class="badge badge-primary">{{ e.turma }}</span></td>
+          <td><a href="{{ url_for('agenda_excluir', id=e.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir este evento?')">🗑️</a></td>
+        </tr>
+        {% endfor %}
+        {% if not eventos %}
+        <tr><td colspan="5" class="empty-state">Nenhum evento agendado</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

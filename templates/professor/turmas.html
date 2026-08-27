@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Turmas — E.E.G.{% endblock %}
+{% block page_title %}🏫 Turmas{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>Criar Nova Turma</h2></div>
+  <form method="POST" action="{{ url_for('turma_nova') }}" style="max-width:400px;display:flex;gap:12px;align-items:end;padding:16px 20px">
+    <div class="form-group" style="flex:1;margin:0">
+      <label>Nome da Turma</label>
+      <input type="text" name="nome" placeholder="Ex: 4º Ano A" required>
+    </div>
+    <button type="submit" class="btn btn-success">+ Criar</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-header"><h2>Turmas Existentes</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Turma</th><th>Alunos</th><th>Ações</th></tr></thead>
+      <tbody>
+        {% for t in turmas %}
+        <tr>
+          <td><strong>{{ t.nome }}</strong></td>
+          <td><span class="badge badge-primary">{{ t.total_alunos }} alunos</span></td>
+          <td class="actions">
+            <a href="{{ url_for('turma_alunos', id=t.id) }}" class="btn btn-sm btn-primary">👨‍🎓 Gerenciar</a>
+            <button class="btn btn-sm btn-outline" onclick="editarTurma({{ t.id }}, '{{ t.nome }}')">✏️ Editar</button>
+            <a href="{{ url_for('turma_excluir', id=t.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir a turma {{ t.nome }}? Alunos não serão excluídos.')" style="color:var(--danger)">🗑️</a>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not turmas %}
+        <tr><td colspan="3" class="empty-state">Nenhuma turma cadastrada</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="modalEditar" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;display:none;align-items:center;justify-content:center">
+  <div style="background:var(--bg-card);border-radius:16px;padding:24px;width:400px;box-shadow:var(--shadow-lg)">
+    <h3 style="margin-bottom:16px">✏️ Editar Turma</h3>
+    <form method="POST" id="formEditar">
+      <div class="form-group">
+        <label>Nome</label>
+        <input type="text" name="nome" id="inputEditar" required>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function editarTurma(id, nome) {
+  document.getElementById('formEditar').action = '/turmas/editar/' + id;
+  document.getElementById('inputEditar').value = nome;
+  document.getElementById('modalEditar').style.display = 'flex';
+}
+function fecharModal() {
+  document.getElementById('modalEditar').style.display = 'none';
+}
+</script>
+{% endblock %}

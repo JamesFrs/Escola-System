@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Alunos da Turma {{ turma.nome }} — E.E.G.{% endblock %}
+{% block page_title %}👨‍🎓 Turma: {{ turma.nome }}{% endblock %}
+{% block content %}
+<div class="card-header" style="margin-bottom:20px">
+  <a href="{{ url_for('turmas_lista') }}" class="btn btn-outline">← Voltar</a>
+  <span style="color:var(--text-secondary)">{{ alunos|length }} aluno(s) nesta turma</span>
+</div>
+
+<!-- Adicionar aluno existente de outra turma -->
+{% if outros %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>📥 Adicionar Aluno de Outra Turma</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Nome</th><th>Código</th><th>Turma Atual</th><th>Ação</th></tr></thead>
+      <tbody>
+        {% for a in outros %}
+        <tr>
+          <td><strong>{{ a.nome }}</strong></td>
+          <td>{{ a.codigo }}</td>
+          <td><span class="badge badge-primary">{{ a.turma }}</span></td>
+          <td>
+            <form method="POST" action="{{ url_for('turma_adicionar_aluno', id=turma.id) }}" style="display:inline">
+              <input type="hidden" name="codigo" value="{{ a.codigo }}">
+              <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Mover {{ a.nome }} para {{ turma.nome }}?')">Mover para {{ turma.nome }}</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Alunos da turma -->
+<div class="card">
+  <div class="card-header"><h2>👨‍🎓 Alunos desta Turma</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Nome</th><th>Código</th><th>Nascimento</th><th>Ações</th></tr></thead>
+      <tbody>
+        {% for a in alunos %}
+        <tr>
+          <td><strong>{{ a.nome }}</strong></td>
+          <td>{{ a.codigo }}</td>
+          <td>{{ a.nascimento or '-' }}</td>
+          <td class="actions">
+            <a href="{{ url_for('aluno_perfil', id=a.id) }}" class="btn btn-sm btn-outline" title="Ver perfil">👁️</a>
+            <a href="{{ url_for('aluno_editar', id=a.id) }}" class="btn btn-sm btn-outline" title="Editar">✏️</a>
+            <button class="btn btn-sm btn-outline" title="Mover para outra turma" onclick="abrirModalMover('{{ a.codigo }}', '{{ a.nome }}')">📤 Mover</button>
+            <button class="btn btn-sm btn-outline" title="Remover do sistema" style="color:var(--danger)" onclick="abrirModalRemover('{{ a.codigo }}', '{{ a.nome }}')">🗑️ Remover</button>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not alunos %}
+        <tr><td colspan="4" class="empty-state">Nenhum aluno nesta turma</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal Mover -->
+<div id="modalMover" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--bg-card);border-radius:16px;padding:24px;width:420px;box-shadow:var(--shadow-lg)">
+    <h3 style="margin-bottom:16px">📤 Mover Aluno</h3>
+    <p style="margin-bottom:16px;color:var(--text-secondary)">Mover <strong id="nomeMover"></strong> para:</p>
+    <form method="POST" action="{{ url_for('turma_mover_aluno', id=turma.id) }}">
+      <input type="hidden" name="codigo" id="codigoMover">
+      <div class="form-group">
+        <label>Turma de Destino</label>
+        <select name="nova_turma" required>
+          {% for t in todas_turmas %}
+          <option value="{{ t.nome }}" {{ 'selected' if t.nome == turma.nome }}>{{ t.nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" class="btn btn-outline" onclick="fecharModal('modalMover')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Mover</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Remover -->
+<div id="modalRemover" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--bg-card);border-radius:16px;padding:24px;width:420px;box-shadow:var(--shadow-lg)">
+    <h3 style="margin-bottom:16px;color:var(--danger)">🗑️ Remover Aluno</h3>
+    <p style="margin-bottom:16px">Tem certeza que deseja excluir <strong id="nomeRemover"></strong> do sistema?</p>
+    <p style="margin-bottom:16px;color:var(--danger);font-size:13px">⚠️ Esta ação irá excluir todas as notas, frequência e pendências do aluno.</p>
+    <form method="POST" action="{{ url_for('turma_remover_aluno', id=turma.id) }}">
+      <input type="hidden" name="codigo" id="codigoRemover">
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" class="btn btn-outline" onclick="fecharModal('modalRemover')">Cancelar</button>
+        <button type="submit" class="btn btn-danger" onclick="return confirm('EXCLUIR este aluno permanentemente?')">Excluir</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function abrirModalMover(codigo, nome) {
+  document.getElementById('codigoMover').value = codigo;
+  document.getElementById('nomeMover').textContent = nome;
+  document.getElementById('modalMover').style.display = 'flex';
+}
+function abrirModalRemover(codigo, nome) {
+  document.getElementById('codigoRemover').value = codigo;
+  document.getElementById('nomeRemover').textContent = nome;
+  document.getElementById('modalRemover').style.display = 'flex';
+}
+function fecharModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}E.E.G. Sistema Escolar{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  {% if session.get('user_type') == 'professor' %}
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2>🎓 E.E.G.</h2>
+        <p>Painel Professor</p>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">📊 Dashboard</a>
+        <div class="nav-section">Cadastros</div>
+        <a href="{{ url_for('alunos') }}" class="{% if request.endpoint in ('alunos','aluno_novo','aluno_editar','aluno_perfil') %}active{% endif %}">👨‍🎓 Alunos</a>
+        <a href="{{ url_for('turmas_lista') }}" class="{% if request.endpoint == 'turmas_lista' %}active{% endif %}">🏫 Turmas</a>
+        <div class="nav-section">Escolar</div>
+        <a href="{{ url_for('notas') }}" class="{% if request.endpoint == 'notas' %}active{% endif %}">📝 Notas</a>
+        <a href="{{ url_for('frequencia') }}" class="{% if request.endpoint in ('frequencia','frequencia_historico') %}active{% endif %}">✅ Frequência</a>
+        <a href="{{ url_for('provas') }}" class="{% if request.endpoint == 'provas' %}active{% endif %}">📅 Provas</a>
+        <a href="{{ url_for('pendencias') }}" class="{% if request.endpoint == 'pendencias' %}active{% endif %}">⚠️ Pendências</a>
+        <div class="nav-section">Comunicação</div>
+        <a href="{{ url_for('avisos') }}" class="{% if request.endpoint == 'avisos' %}active{% endif %}">📢 Avisos</a>
+        <a href="{{ url_for('agenda') }}" class="{% if request.endpoint == 'agenda' %}active{% endif %}">📆 Agenda</a>
+        <div class="nav-section">Sistema</div>
+        <a href="{{ url_for('historico') }}" class="{% if request.endpoint == 'historico' %}active{% endif %}">📋 Histórico</a>
+      </nav>
+      <div class="sidebar-footer">
+        <span style="color:var(--text-sidebar);font-size:13px">👤 {{ session.user_name }}</span>
+        <a href="{{ url_for('logout') }}">🚪 Sair</a>
+      </div>
+    </aside>
+    <main class="main-content">
+      <div class="topbar">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <h1>{% block page_title %}{% endblock %}</h1>
+        <div class="topbar-search">
+          <input type="text" id="buscaGlobal" placeholder="🔍 Buscar aluno..." onkeyup="buscaGlobal(this.value)">
+          <div id="resultadosBusca" class="search-dropdown"></div>
+        </div>
+      </div>
+      <div id="pageContent">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for cat, msg in messages %}
+              <div class="alert alert-{{ cat }}">{{ msg }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+  {% elif session.get('user_type') == 'aluno' %}
+  <div class="portal-layout">
+    <header class="portal-header">
+      <h1>🎓 E.E.G. — Portal do Aluno</h1>
+      <div class="portal-user">
+        <span>👤 {{ session.user_name }}</span>
+        <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline">🚪 Sair</a>
+      </div>
+    </header>
+    <main class="portal-main">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for cat, msg in messages %}
+            <div class="alert alert-{{ cat }}">{{ msg }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      {% block portal_content %}{% endblock %}
+    </main>
+  </div>
+  {% else %}
+  {% block bare_content %}{% endblock %}
+  {% endif %}
+
+  <script>
+    async function buscaGlobal(q) {
+      const dd = document.getElementById('resultadosBusca');
+      if (!dd) return;
+      if (q.length < 1) { dd.innerHTML = ''; dd.style.display = 'none'; return; }
+      const res = await fetch('/api/buscar?q=' + encodeURIComponent(q));
+      const data = await res.json();
+      if (!data.length) { dd.innerHTML = '<div class="search-item">Nenhum resultado</div>'; dd.style.display = 'block'; return; }
+      dd.innerHTML = data.map(a => `<a href="/alunos/perfil/${a.id}" class="search-item"><strong>${a.nome}</strong> — ${a.codigo} — ${a.turma}</a>`).join('');
+      dd.style.display = 'block';
+    }
+    document.addEventListener('click', e => {
+      const dd = document.getElementById('resultadosBusca');
+      if (dd && !e.target.closest('.topbar-search')) { dd.style.display = 'none'; }
+    });
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

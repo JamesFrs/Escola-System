@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Frequência — E.E.G.{% endblock %}
+{% block page_title %}✅ Frequência{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>Registrar Frequência</h2></div>
+  <form method="GET" action="{{ url_for('frequencia') }}" style="display:flex;gap:12px;align-items:end;flex-wrap:wrap;padding:16px 20px">
+    <div class="form-group" style="min-width:160px">
+      <label>Turma</label>
+      <select name="turma" required onchange="this.form.submit()">
+        <option value="">Selecione...</option>
+        {% for t in turmas %}
+        <option value="{{ t }}" {{ 'selected' if t == turma_sel }}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="min-width:160px">
+      <label>Disciplina</label>
+      <select name="disciplina" required onchange="this.form.submit()">
+        <option value="">Selecione...</option>
+        {% for d in disciplinas %}
+        <option value="{{ d }}" {{ 'selected' if d == disc_sel }}>{{ d }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="min-width:160px">
+      <label>Data</label>
+      <input type="date" name="data" value="{{ data_sel }}" required onchange="this.form.submit()">
+    </div>
+  </form>
+</div>
+
+{% if alunos %}
+<div class="card">
+  <div class="card-header">
+    <h2>{{ disc_sel }} — {{ turma_sel }} — {{ data_sel }}</h2>
+  </div>
+  <form method="POST">
+    <input type="hidden" name="turma" value="{{ turma_sel }}">
+    <input type="hidden" name="disciplina" value="{{ disc_sel }}">
+    <input type="hidden" name="data" value="{{ data_sel }}">
+    <div class="table-container">
+      <table>
+        <thead><tr><th>Nome</th><th>Código</th><th>Situação</th><th>Ação</th></tr></thead>
+        <tbody>
+          {% for a in alunos %}
+          <tr>
+            <td><strong>{{ a.nome }}</strong></td>
+            <td>{{ a.codigo }}</td>
+            <td>
+              {% if a.status is not none %}
+                {% if a.status == 1 %}
+                  <span class="badge badge-success">Presente</span>
+                {% else %}
+                  <span class="badge badge-danger">Faltou</span>
+                {% endif %}
+              {% else %}
+                <span class="badge badge-warning">Não registrado</span>
+              {% endif %}
+            </td>
+            <td>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" name="presenca_{{ a.codigo }}" {{ 'checked' if a.status != 0 }}
+                       onchange="this.closest('tr').querySelector('.badge').className='badge '+(this.checked?'badge-success':'badge-danger');this.closest('tr').querySelector('.badge').textContent=this.checked?'Presente':'Faltou'">
+                Presente
+              </label>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div style="padding:16px;text-align:right">
+      <button type="submit" class="btn btn-success">💾 Salvar Frequência</button>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+{% if turma_sel and disc_sel %}
+<div style="margin-top:16px">
+  <a href="{{ url_for('frequencia_historico', codigo='-') }}?disciplina={{ disc_sel }}" class="btn btn-outline" style="pointer-events:none;opacity:0.5">Ver histórico de um aluno</a>
+</div>
+{% endif %}
+{% endblock %}

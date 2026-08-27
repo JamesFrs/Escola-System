@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Notas — E.E.G.{% endblock %}
+{% block page_title %}📝 Lançamento de Notas{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>Selecionar Aluno</h2></div>
+  <form method="GET" action="{{ url_for('notas') }}" class="inline-form">
+    <select name="aluno" onchange="this.form.submit()">
+      <option value="">Selecione o aluno...</option>
+      {% for a in alunos %}
+      <option value="{{ a.codigo }}" {{ 'selected' if a.codigo == aluno_sel }}>{{ a.nome }} — {{ a.codigo }} ({{ a.turma }})</option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+
+{% if aluno_obj %}
+<div class="card">
+  <div class="card-header">
+    <h2>Notas de {{ aluno_obj.nome }} — {{ aluno_obj.turma }}</h2>
+    <a href="{{ url_for('boletim', codigo=aluno_obj.codigo) }}" class="btn btn-primary">📄 Ver Boletim</a>
+  </div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Disciplina</th><th>Nota</th><th>Ação</th></tr></thead>
+      <tbody>
+        {% for n in notas %}
+        <tr>
+          <td><strong>{{ n.disciplina }}</strong></td>
+          <td>
+            <form method="POST" class="inline-form">
+              <input type="hidden" name="codigo_aluno" value="{{ aluno_obj.codigo }}">
+              <input type="hidden" name="disciplina" value="{{ n.disciplina }}">
+              <input type="number" name="nota" value="{{ n.nota }}" min="0" max="10" step="0.1" style="width:100px">
+              <button type="submit" class="btn btn-sm btn-success">Salvar</button>
+            </form>
+          </td>
+          <td><span class="badge {% if n.nota >= 7 %}badge-success{% elif n.nota >= 5 %}badge-warning{% else %}badge-danger{% endif %}">{{ 'Aprovado' if n.nota >= 7 else ('Recuperação' if n.nota >= 5 else 'Reprovado') }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

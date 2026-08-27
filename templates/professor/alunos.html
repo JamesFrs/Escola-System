@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Alunos — E.E.G.{% endblock %}
+{% block page_title %}👨‍🎓 Alunos{% endblock %}
+{% block content %}
+<div class="card-header" style="margin-bottom:20px">
+  <form class="search-bar" method="GET" action="{{ url_for('alunos') }}">
+    <input type="text" name="q" value="{{ busca }}" placeholder="Buscar por nome, código ou turma...">
+    <button type="submit" class="btn btn-outline">🔍 Buscar</button>
+  </form>
+  <a href="{{ url_for('aluno_novo') }}" class="btn btn-success">+ Novo Aluno</a>
+</div>
+<div class="card">
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Código</th><th>Nome</th><th>Turma</th><th>Nascimento</th><th>Ações</th></tr></thead>
+      <tbody>
+        {% for a in alunos %}
+        <tr>
+          <td><strong>{{ a.codigo }}</strong></td>
+          <td>{{ a.nome }}</td>
+          <td><span class="badge badge-primary">{{ a.turma }}</span></td>
+          <td>{{ a.nascimento or '-' }}</td>
+          <td class="actions">
+            <a href="{{ url_for('aluno_perfil', id=a.id) }}" title="Perfil">👁️</a>
+            <a href="{{ url_for('aluno_editar', id=a.id) }}" title="Editar">✏️</a>
+            <a href="{{ url_for('aluno_excluir', id=a.id) }}" title="Excluir" onclick="return confirm('Tem certeza?')">🗑️</a>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not alunos %}
+        <tr><td colspan="5" class="empty-state">Nenhum aluno encontrado</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
