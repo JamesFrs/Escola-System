@@ -34,7 +34,7 @@ def init_db():
         turma TEXT NOT NULL,
         codigo_aluno TEXT NOT NULL,
         funcao TEXT NOT NULL DEFAULT 'representante',
-        UNIQUE(turma)
+        UNIQUE(turma, funcao)
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS notas (

@@ -891,7 +891,7 @@ def boletim_pdf(codigo):
 def generate_boletim_pdf(aluno, notas, freq_por_disc, total_geral, media_geral, situacao):
     lines = []
     lines.append("=" * 60)
-    lines.append("           E.E.G. - BOLETIM ESCOLAR")
+    lines.append("           SISTEMA ESCOLAR - BOLETIM")
     lines.append("=" * 60)
     lines.append("")
     lines.append(f"  Aluno: {aluno['nome']}")
@@ -1012,6 +1012,32 @@ def rep_avisos():
     return render_template('representante/avisos.html', avisos=lista, turma=turma)
 
 
+@app.route('/representante/avisos/editar/<int:id>', methods=['POST'])
+def rep_aviso_editar(id):
+    if session.get('user_type') != 'representante':
+        return redirect(url_for('login'))
+    a = query_db("SELECT * FROM avisos WHERE id=?", [id], one=True)
+    if a and a['criado_por'] == session['user_codigo']:
+        titulo = request.form['titulo'].strip()
+        descricao = request.form['descricao'].strip()
+        execute_db("UPDATE avisos SET titulo=?, descricao=? WHERE id=?", (titulo, descricao, id))
+        log_atividade_rep(session['user_codigo'], session['user_turma'], f'Editou aviso: {titulo}')
+        flash('Aviso atualizado!', 'success')
+    return redirect(url_for('rep_avisos'))
+
+
+@app.route('/representante/avisos/excluir/<int:id>')
+def rep_aviso_excluir(id):
+    if session.get('user_type') != 'representante':
+        return redirect(url_for('login'))
+    a = query_db("SELECT * FROM avisos WHERE id=?", [id], one=True)
+    if a and a['criado_por'] == session['user_codigo']:
+        execute_db("DELETE FROM avisos WHERE id=?", [id])
+        log_atividade_rep(session['user_codigo'], session['user_turma'], f'Excluiu aviso: {a["titulo"]}')
+        flash('Aviso excluído!', 'success')
+    return redirect(url_for('rep_avisos'))
+
+
 @app.route('/representante/provas', methods=['GET', 'POST'])
 def rep_provas():
     if session.get('user_type') != 'representante':
@@ -1030,6 +1056,35 @@ def rep_provas():
         return redirect(url_for('rep_provas'))
     lista = query_db("SELECT * FROM provas WHERE turma=? AND (status='confirmada' OR (criado_por=? AND status='pendente')) ORDER BY data", [turma, codigo])
     return render_template('representante/provas.html', provas=lista, turma=turma, disciplinas=DISCIPLINAS)
+
+
+@app.route('/representante/provas/editar/<int:id>', methods=['POST'])
+def rep_prova_editar(id):
+    if session.get('user_type') != 'representante':
+        return redirect(url_for('login'))
+    p = query_db("SELECT * FROM provas WHERE id=?", [id], one=True)
+    if p and p['criado_por'] == session['user_codigo'] and p['status'] == 'pendente':
+        disciplina = request.form.get('disciplina', p['disciplina'])
+        data = request.form.get('data', p['data'])
+        conteudo = request.form.get('conteudo', p['conteudo'])
+        observacao = request.form.get('observacao', p['observacao'])
+        execute_db("UPDATE provas SET disciplina=?, data=?, conteudo=?, observacao=? WHERE id=?",
+                   (disciplina, data, conteudo, observacao, id))
+        log_atividade_rep(session['user_codigo'], session['user_turma'], f'Editou prova: {disciplina} em {data}')
+        flash('Prova atualizada!', 'success')
+    return redirect(url_for('rep_provas'))
+
+
+@app.route('/representante/provas/excluir/<int:id>')
+def rep_prova_excluir(id):
+    if session.get('user_type') != 'representante':
+        return redirect(url_for('login'))
+    p = query_db("SELECT * FROM provas WHERE id=?", [id], one=True)
+    if p and p['criado_por'] == session['user_codigo'] and p['status'] == 'pendente':
+        execute_db("DELETE FROM provas WHERE id=?", [id])
+        log_atividade_rep(session['user_codigo'], session['user_turma'], f'Excluiu prova: {p["disciplina"]}')
+        flash('Prova excluída!', 'success')
+    return redirect(url_for('rep_provas'))
 
 
 @app.route('/representante/demandas', methods=['GET', 'POST'])
@@ -1051,6 +1106,33 @@ def rep_demandas():
     return render_template('representante/demandas.html', demandas=lista, turma=turma)
 
 
+@app.route('/representante/demandas/editar/<int:id>', methods=['POST'])
+def rep_demanda_editar(id):
+    if session.get('user_type') != 'representante':
+        return redirect(url_for('login'))
+    d = query_db("SELECT * FROM demandas WHERE id=?", [id], one=True)
+    if d and d['criado_por'] == session['user_codigo']:
+        titulo = request.form.get('titulo', d['titulo']).strip()
+        descricao = request.form.get('descricao', d['descricao']).strip()
+        categoria = request.form.get('categoria', d['categoria'])
+        execute_db("UPDATE demandas SET titulo=?, descricao=?, categoria=? WHERE id=?", (titulo, descricao, categoria, id))
+        log_atividade_rep(session['user_codigo'], session['user_turma'], f'Editou demanda: {titulo}')
+        flash('Demanda atualizada!', 'success')
+    return redirect(url_for('rep_demandas'))
+
+
+@app.route('/representante/demandas/excluir/<int:id>')
+def rep_demanda_excluir(id):
+    if session.get('user_type') != 'representante':
+        return redirect(url_for('login'))
+    d = query_db("SELECT * FROM demandas WHERE id=?", [id], one=True)
+    if d and d['criado_por'] == session['user_codigo']:
+        execute_db("DELETE FROM demandas WHERE id=?", [id])
+        log_atividade_rep(session['user_codigo'], session['user_turma'], f'Excluiu demanda: {d["titulo"]}')
+        flash('Demanda excluída!', 'success')
+    return redirect(url_for('rep_demandas'))
+
+
 @app.route('/representante/sugestoes', methods=['GET', 'POST'])
 def rep_sugestoes():
     if session.get('user_type') != 'representante':
@@ -1067,6 +1149,32 @@ def rep_sugestoes():
         return redirect(url_for('rep_sugestoes'))
     lista = query_db("SELECT * FROM sugestoes WHERE turma=? AND criado_por=? ORDER BY data DESC", [turma, codigo])
     return render_template('representante/sugestoes.html', sugestoes=lista, turma=turma)
+
+
+@app.route('/representante/sugestoes/editar/<int:id>', methods=['POST'])
+def rep_sugestao_editar(id):
+    if session.get('user_type') != 'representante':
+        return redirect(url_for('login'))
+    s = query_db("SELECT * FROM sugestoes WHERE id=?", [id], one=True)
+    if s and s['criado_por'] == session['user_codigo']:
+        titulo = request.form.get('titulo', s['titulo']).strip()
+        descricao = request.form.get('descricao', s['descricao']).strip()
+        execute_db("UPDATE sugestoes SET titulo=?, descricao=? WHERE id=?", (titulo, descricao, id))
+        log_atividade_rep(session['user_codigo'], session['user_turma'], f'Editou sugestão: {titulo}')
+        flash('Sugestão atualizada!', 'success')
+    return redirect(url_for('rep_sugestoes'))
+
+
+@app.route('/representante/sugestoes/excluir/<int:id>')
+def rep_sugestao_excluir(id):
+    if session.get('user_type') != 'representante':
+        return redirect(url_for('login'))
+    s = query_db("SELECT * FROM sugestoes WHERE id=?", [id], one=True)
+    if s and s['criado_por'] == session['user_codigo']:
+        execute_db("DELETE FROM sugestoes WHERE id=?", [id])
+        log_atividade_rep(session['user_codigo'], session['user_turma'], f'Excluiu sugestão: {s["titulo"]}')
+        flash('Sugestão excluída!', 'success')
+    return redirect(url_for('rep_sugestoes'))
 
 
 @app.route('/representante/enquetes', methods=['GET', 'POST'])
@@ -1101,6 +1209,31 @@ def rep_enquetes():
     return render_template('representante/enquetes.html', enquetes=lista, turma=turma)
 
 
+@app.route('/representante/enquetes/fechar/<int:id>')
+def rep_enquete_fechar(id):
+    if session.get('user_type') != 'representante':
+        return redirect(url_for('login'))
+    e = query_db("SELECT * FROM enquetes WHERE id=?", [id], one=True)
+    if e and e['criado_por'] == session['user_codigo']:
+        execute_db("UPDATE enquetes SET ativa=0 WHERE id=?", [id])
+        log_atividade_rep(session['user_codigo'], session['user_turma'], f'Encerrou enquete: {e["titulo"]}')
+        flash('Enquete encerrada!', 'success')
+    return redirect(url_for('rep_enquetes'))
+
+
+@app.route('/representante/enquetes/excluir/<int:id>')
+def rep_enquete_excluir(id):
+    if session.get('user_type') != 'representante':
+        return redirect(url_for('login'))
+    e = query_db("SELECT * FROM enquetes WHERE id=?", [id], one=True)
+    if e and e['criado_por'] == session['user_codigo']:
+        execute_db("DELETE FROM votos_enquete WHERE enquete_id=?", [id])
+        execute_db("DELETE FROM enquetes WHERE id=?", [id])
+        log_atividade_rep(session['user_codigo'], session['user_turma'], f'Excluiu enquete: {e["titulo"]}')
+        flash('Enquete excluída!', 'success')
+    return redirect(url_for('rep_enquetes'))
+
+
 @app.route('/representante/reunioes', methods=['GET', 'POST'])
 def rep_reunioes():
     if session.get('user_type') != 'representante':
@@ -1118,6 +1251,33 @@ def rep_reunioes():
         return redirect(url_for('rep_reunioes'))
     lista = query_db("SELECT * FROM reunioes WHERE turma=? ORDER BY data DESC", [turma])
     return render_template('representante/reunioes.html', reunioes=lista, turma=turma)
+
+
+@app.route('/representante/reunioes/editar/<int:id>', methods=['POST'])
+def rep_reuniao_editar(id):
+    if session.get('user_type') != 'representante':
+        return redirect(url_for('login'))
+    r = query_db("SELECT * FROM reunioes WHERE id=?", [id], one=True)
+    if r and r['criado_por'] == session['user_codigo']:
+        data = request.form.get('data', r['data'])
+        assuntos = request.form.get('assuntos', r['assuntos']).strip()
+        resumo = request.form.get('resumo', r['resumo']).strip()
+        execute_db("UPDATE reunioes SET data=?, assuntos=?, resumo=? WHERE id=?", (data, assuntos, resumo, id))
+        log_atividade_rep(session['user_codigo'], session['user_turma'], f'Editou reunião de {data}')
+        flash('Reunião atualizada!', 'success')
+    return redirect(url_for('rep_reunioes'))
+
+
+@app.route('/representante/reunioes/excluir/<int:id>')
+def rep_reuniao_excluir(id):
+    if session.get('user_type') != 'representante':
+        return redirect(url_for('login'))
+    r = query_db("SELECT * FROM reunioes WHERE id=?", [id], one=True)
+    if r and r['criado_por'] == session['user_codigo']:
+        execute_db("DELETE FROM reunioes WHERE id=?", [id])
+        log_atividade_rep(session['user_codigo'], session['user_turma'], f'Excluiu reunião de {r["data"]}')
+        flash('Reunião excluída!', 'success')
+    return redirect(url_for('rep_reunioes'))
 
 
 @app.route('/representante/alunos')

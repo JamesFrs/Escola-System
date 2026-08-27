@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Avisos — Representante{% endblock %}
-{% block page_title_rep %}📢 Avisos da Turma{% endblock %}
+{% block page_title_rep %}📢 Avisos{% endblock %}
 {% block content_rep %}
 <div class="card" style="margin-bottom:20px">
   <div class="card-header"><h2>Publicar Aviso</h2></div>
   <form method="POST" style="max-width:600px">
     <div class="form-group">
       <label>Título</label>
-      <input type="text" name="titulo" placeholder="Ex: Reunião de pais" required>
+      <input type="text" name="titulo" placeholder="Ex: Atividade de Biologia" required>
     </div>
     <div class="form-group">
       <label>Descrição</label>
@@ -21,20 +21,49 @@
   <div class="card-header"><h2>Avisos Publicados</h2></div>
   <div class="table-container">
     <table>
-      <thead><tr><th>Título</th><th>Descrição</th><th>Data</th></tr></thead>
+      <thead><tr><th>Título</th><th>Descrição</th><th>Data</th><th>Ações</th></tr></thead>
       <tbody>
         {% for a in avisos %}
         <tr>
           <td><strong>{{ a.titulo }}</strong></td>
           <td>{{ a.descricao }}</td>
           <td>{{ a.data }}</td>
+          <td class="actions">
+            {% if a.criado_por == session.user_codigo %}
+            <button class="btn btn-sm btn-outline" onclick="editarAviso({{ a.id }}, '{{ a.titulo }}', `{{ a.descricao }}`)">✏️</button>
+            <a href="{{ url_for('rep_aviso_excluir', id=a.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir este aviso?')" style="color:var(--danger)">🗑️</a>
+            {% endif %}
+          </td>
         </tr>
         {% endfor %}
         {% if not avisos %}
-        <tr><td colspan="3" class="empty-state">Nenhum aviso publicado</td></tr>
+        <tr><td colspan="4" class="empty-state">Nenhum aviso publicado</td></tr>
         {% endif %}
       </tbody>
     </table>
   </div>
 </div>
+
+<div id="modalEditar" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--bg-card);border-radius:16px;padding:24px;width:450px;box-shadow:var(--shadow-lg)">
+    <h3 style="margin-bottom:16px">✏️ Editar Aviso</h3>
+    <form method="POST" id="formEditar">
+      <div class="form-group"><label>Título</label><input type="text" name="titulo" id="inputTitulo" required></div>
+      <div class="form-group"><label>Descrição</label><textarea name="descricao" id="inputDescricao" rows="3" required></textarea></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+function editarAviso(id, titulo, descricao) {
+  document.getElementById('formEditar').action = '/representante/avisos/editar/' + id;
+  document.getElementById('inputTitulo').value = titulo;
+  document.getElementById('inputDescricao').value = descricao;
+  document.getElementById('modalEditar').style.display = 'flex';
+}
+function fecharModal() { document.getElementById('modalEditar').style.display = 'none'; }
+</script>
 {% endblock %}

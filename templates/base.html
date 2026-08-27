@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}E.E.G. Sistema Escolar{% endblock %}</title>
+  <title>{% block title %}Sistema Escolar (beta){% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -14,7 +14,7 @@
   <div class="app-layout">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <h2>🎓 E.E.G.</h2>
+        <h2>🎓 Sistema Escolar (beta)</h2>
         <p>Painel Professor</p>
       </div>
       <nav class="sidebar-nav">
@@ -64,11 +64,11 @@
   <div class="app-layout">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <h2>🎓 E.E.G.</h2>
+        <h2>🎓 Sistema Escolar (beta)</h2>
         <p>Representante — {{ session.user_turma }}</p>
       </div>
       <nav class="sidebar-nav">
-        <a href="{{ url_for('rep_dashboard') }}" class="{% if request.endpoint == 'rep_dashboard' %}active{% endif %}">📊 Dashboard</a>
+        <a href="{{ url_for('rep_dashboard') }}" class="{% if request.endpoint == 'rep_dashboard' %}active{% endif %}">📊 Minha Turma</a>
         <div class="nav-section">Minha Turma</div>
         <a href="{{ url_for('rep_alunos') }}" class="{% if request.endpoint == 'rep_alunos' %}active{% endif %}">👨‍🎓 Alunos</a>
         <a href="{{ url_for('rep_frequencia') }}" class="{% if request.endpoint == 'rep_frequencia' %}active{% endif %}">✅ Registrar Frequência</a>
@@ -104,7 +104,7 @@
   {% elif session.get('user_type') == 'aluno' %}
   <div class="portal-layout">
     <header class="portal-header">
-      <h1>🎓 E.E.G. — Portal do Aluno</h1>
+      <h1>🎓 Sistema Escolar (beta) — Portal do Aluno</h1>
       <div class="portal-user">
         <span>👤 {{ session.user_name }}</span>
         <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline">🚪 Sair</a>

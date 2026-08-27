@@ -5,40 +5,62 @@
 <div class="card" style="margin-bottom:20px">
   <div class="card-header"><h2>Registrar Reunião</h2></div>
   <form method="POST" style="max-width:600px">
-    <div class="form-group">
-      <label>Data</label>
-      <input type="date" name="data" required>
-    </div>
-    <div class="form-group">
-      <label>Assuntos</label>
-      <textarea name="assuntos" rows="3" placeholder="Assuntos discutidos na reunião..." required></textarea>
-    </div>
-    <div class="form-group">
-      <label>Resumo</label>
-      <textarea name="resumo" rows="3" placeholder="Resumo e decisões tomadas..." required></textarea>
-    </div>
-    <button type="submit" class="btn btn-success">Registrar Reunião</button>
+    <div class="form-group"><label>Data</label><input type="date" name="data" required></div>
+    <div class="form-group"><label>Assuntos</label><textarea name="assuntos" rows="2" required placeholder="Ex: Notas, comportamento, atividades"></textarea></div>
+    <div class="form-group"><label>Resumo</label><textarea name="resumo" rows="2" placeholder="Resumo das discussões"></textarea></div>
+    <button type="submit" class="btn btn-success">Registrar</button>
   </form>
 </div>
 
 <div class="card">
-  <div class="card-header"><h2>Reuniões Anteriores</h2></div>
+  <div class="card-header"><h2>Reuniões Realizadas</h2></div>
   <div class="table-container">
     <table>
-      <thead><tr><th>Data</th><th>Assuntos</th><th>Resumo</th></tr></thead>
+      <thead><tr><th>Data</th><th>Assuntos</th><th>Resumo</th><th>Ações</th></tr></thead>
       <tbody>
         {% for r in reunioes %}
         <tr>
           <td><strong>{{ r.data }}</strong></td>
           <td>{{ r.assuntos }}</td>
-          <td>{{ r.resumo }}</td>
+          <td>{{ r.resumo or '-' }}</td>
+          <td class="actions">
+            {% if r.criado_por == session.user_codigo %}
+            <button class="btn btn-sm btn-outline" onclick="editarReuniao({{ r.id }}, '{{ r.data }}', `{{ r.assuntos }}`, `{{ r.resumo }}`)">✏️</button>
+            <a href="{{ url_for('rep_reuniao_excluir', id=r.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir?')" style="color:var(--danger)">🗑️</a>
+            {% endif %}
+          </td>
         </tr>
         {% endfor %}
         {% if not reunioes %}
-        <tr><td colspan="3" class="empty-state">Nenhuma reunião registrada</td></tr>
+        <tr><td colspan="4" class="empty-state">Nenhuma reunião registrada</td></tr>
         {% endif %}
       </tbody>
     </table>
   </div>
 </div>
+
+<div id="modalEditar" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--bg-card);border-radius:16px;padding:24px;width:450px;box-shadow:var(--shadow-lg)">
+    <h3 style="margin-bottom:16px">✏️ Editar Reunião</h3>
+    <form method="POST" id="formEditar">
+      <div class="form-group"><label>Data</label><input type="date" name="data" id="inputData" required></div>
+      <div class="form-group"><label>Assuntos</label><textarea name="assuntos" id="inputAssuntos" rows="2" required></textarea></div>
+      <div class="form-group"><label>Resumo</label><textarea name="resumo" id="inputResumo" rows="2"></textarea></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+function editarReuniao(id, data, assuntos, resumo) {
+  document.getElementById('formEditar').action = '/representante/reunioes/editar/' + id;
+  document.getElementById('inputData').value = data;
+  document.getElementById('inputAssuntos').value = assuntos;
+  document.getElementById('inputResumo').value = resumo;
+  document.getElementById('modalEditar').style.display = 'flex';
+}
+function fecharModal() { document.getElementById('modalEditar').style.display = 'none'; }
+</script>
 {% endblock %}

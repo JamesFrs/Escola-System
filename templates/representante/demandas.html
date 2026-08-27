@@ -1,62 +1,71 @@
 {% extends "base.html" %}
 {% block title %}Demandas — Representante{% endblock %}
-{% block page_title_rep %}📋 Demandas{% endblock %}
+{% block page_title_rep %}📩 Demandas{% endblock %}
 {% block content_rep %}
 <div class="card" style="margin-bottom:20px">
-  <div class="card-header"><h2>Abrir Nova Demanda</h2></div>
+  <div class="card-header"><h2>Nova Demanda</h2></div>
   <form method="POST" style="max-width:600px">
-    <div class="form-group">
-      <label>Título</label>
-      <input type="text" name="titulo" placeholder="Ex: Ar condicionado quebrado" required>
-    </div>
+    <div class="form-group"><label>Título</label><input type="text" name="titulo" placeholder="Ex: Ventilador quebrado" required></div>
     <div class="form-group">
       <label>Categoria</label>
-      <select name="categoria" required>
-        <option value="Infraestrutura">Infraestrutura</option>
-        <option value="Atividade">Atividade</option>
-        <option value="Sugestão">Sugestão</option>
-        <option value="Outro">Outro</option>
-      </select>
+      <select name="categoria"><option value="Infraestrutura">Infraestrutura</option><option value="Atividade">Atividade</option><option value="Outro">Outro</option></select>
     </div>
-    <div class="form-group">
-      <label>Descrição</label>
-      <textarea name="descricao" rows="3" placeholder="Descreva a demanda..." required></textarea>
-    </div>
-    <button type="submit" class="btn btn-success">Enviar Demanda</button>
+    <div class="form-group"><label>Descrição</label><textarea name="descricao" rows="3" required></textarea></div>
+    <button type="submit" class="btn btn-success">Enviar</button>
   </form>
 </div>
 
 <div class="card">
-  <div class="card-header"><h2>Demandas Enviadas</h2></div>
+  <div class="card-header"><h2>Minhas Demandas</h2></div>
   <div class="table-container">
     <table>
-      <thead><tr><th>Título</th><th>Categoria</th><th>Descrição</th><th>Status</th></tr></thead>
+      <thead><tr><th>Título</th><th>Categoria</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
       <tbody>
         {% for d in demandas %}
         <tr>
-          <td><strong>{{ d.titulo }}</strong></td>
+          <td><strong>{{ d.titulo }}</strong><br><small style="color:var(--text-secondary)">{{ d.descricao[:80] }}{% if d.descricao|length > 80 %}...{% endif %}</small></td>
           <td><span class="badge badge-primary">{{ d.categoria }}</span></td>
-          <td>{{ d.descricao }}</td>
-          <td>
-            {% if d.status == 'Enviada' %}
-              <span class="badge badge-primary">Enviada</span>
-            {% elif d.status == 'Em análise' %}
-              <span class="badge badge-warning">Em análise</span>
-            {% elif d.status == 'Resolvida' %}
-              <span class="badge badge-success">Resolvida</span>
-            {% elif d.status == 'Recusada' %}
-              <span class="badge badge-danger">Recusada</span>
-            {% else %}
-              <span class="badge badge-primary">{{ d.status }}</span>
+          <td><span class="badge {% if d.status == 'Resolvida' %}badge-success{% elif d.status == 'Em análise' %}badge-warning{% elif d.status == 'Recusada' %}badge-danger{% else %}badge-primary{% endif %}">{{ d.status }}</span></td>
+          <td>{{ d.data }}</td>
+          <td class="actions">
+            {% if d.resposta %}<br><small style="color:var(--text-secondary)">💬 {{ d.resposta }}</small>{% endif %}
+            {% if d.status in ('Enviada', 'Em análise') %}
+            <button class="btn btn-sm btn-outline" onclick="editarDemanda({{ d.id }}, '{{ d.titulo }}', '{{ d.categoria }}', `{{ d.descricao }}`)">✏️</button>
+            <a href="{{ url_for('rep_demanda_excluir', id=d.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir?')" style="color:var(--danger)">🗑️</a>
             {% endif %}
           </td>
         </tr>
         {% endfor %}
         {% if not demandas %}
-        <tr><td colspan="4" class="empty-state">Nenhuma demanda enviada</td></tr>
+        <tr><td colspan="5" class="empty-state">Nenhuma demanda registrada</td></tr>
         {% endif %}
       </tbody>
     </table>
   </div>
 </div>
+
+<div id="modalEditar" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--bg-card);border-radius:16px;padding:24px;width:450px;box-shadow:var(--shadow-lg)">
+    <h3 style="margin-bottom:16px">✏️ Editar Demanda</h3>
+    <form method="POST" id="formEditar">
+      <div class="form-group"><label>Título</label><input type="text" name="titulo" id="inputTitulo" required></div>
+      <div class="form-group"><label>Categoria</label><select name="categoria" id="inputCategoria"><option value="Infraestrutura">Infraestrutura</option><option value="Atividade">Atividade</option><option value="Outro">Outro</option></select></div>
+      <div class="form-group"><label>Descrição</label><textarea name="descricao" id="inputDescricao" rows="3" required></textarea></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+function editarDemanda(id, titulo, cat, desc) {
+  document.getElementById('formEditar').action = '/representante/demandas/editar/' + id;
+  document.getElementById('inputTitulo').value = titulo;
+  document.getElementById('inputCategoria').value = cat;
+  document.getElementById('inputDescricao').value = desc;
+  document.getElementById('modalEditar').style.display = 'flex';
+}
+function fecharModal() { document.getElementById('modalEditar').style.display = 'none'; }
+</script>
 {% endblock %}

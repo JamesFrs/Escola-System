@@ -1,59 +1,75 @@
 {% extends "base.html" %}
 {% block title %}Provas — Representante{% endblock %}
-{% block page_title_rep %}📅 Provas{% endblock %}
+{% block page_title_rep %}📅 Informar Provas{% endblock %}
 {% block content_rep %}
 <div class="card" style="margin-bottom:20px">
   <div class="card-header"><h2>Informar Nova Prova</h2></div>
-  <form method="POST" style="max-width:800px">
-    <div class="form-row">
-      <div class="form-group">
-        <label>Disciplina</label>
-        <select name="disciplina" required>
-          {% for d in disciplinas %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Data</label>
-        <input type="date" name="data" required>
-      </div>
-    </div>
+  <form method="POST" style="max-width:600px">
     <div class="form-group">
-      <label>Conteúdo</label>
-      <textarea name="conteudo" rows="2" placeholder="Conteúdo programático..." required></textarea>
+      <label>Disciplina</label>
+      <select name="disciplina" required>
+        {% for d in disciplinas %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+      </select>
     </div>
-    <div class="form-group">
-      <label>Observação</label>
-      <textarea name="observacao" rows="2" placeholder="Observações adicionais (opcional)"></textarea>
-    </div>
-    <button type="submit" class="btn btn-success">Informar Prova</button>
+    <div class="form-group"><label>Data</label><input type="date" name="data" required></div>
+    <div class="form-group"><label>Conteúdo</label><input type="text" name="conteudo" placeholder="Ex: Função quadrática"></div>
+    <div class="form-group"><label>Observação</label><input type="text" name="observacao" placeholder="Ex: Valendo 10 pontos"></div>
+    <button type="submit" class="btn btn-success">Enviar para Professor</button>
   </form>
 </div>
 
 <div class="card">
-  <div class="card-header"><h2>Provas Informadas</h2></div>
+  <div class="card-header"><h2>Provas</h2></div>
   <div class="table-container">
     <table>
-      <thead><tr><th>Data</th><th>Disciplina</th><th>Conteúdo</th><th>Status</th></tr></thead>
+      <thead><tr><th>Data</th><th>Disciplina</th><th>Conteúdo</th><th>Status</th><th>Ações</th></tr></thead>
       <tbody>
         {% for p in provas %}
         <tr>
           <td><strong>{{ p.data }}</strong></td>
           <td>{{ p.disciplina }}</td>
-          <td>{{ p.conteudo }}</td>
-          <td>
-            {% if p.status == 'confirmada' %}
-              <span class="badge badge-success">Confirmada</span>
-            {% else %}
-              <span class="badge badge-warning">Pendente</span>
+          <td>{{ p.conteudo or '-' }}</td>
+          <td><span class="badge {% if p.status == 'confirmada' %}badge-success{% else %}badge-warning{% endif %}">{{ p.status }}</span></td>
+          <td class="actions">
+            {% if p.criado_por == session.user_codigo and p.status == 'pendente' %}
+            <button class="btn btn-sm btn-outline" onclick="editarProva({{ p.id }}, '{{ p.disciplina }}', '{{ p.data }}', `{{ p.conteudo }}`, `{{ p.observacao }}`)">✏️</button>
+            <a href="{{ url_for('rep_prova_excluir', id=p.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir?')" style="color:var(--danger)">🗑️</a>
             {% endif %}
           </td>
         </tr>
         {% endfor %}
         {% if not provas %}
-        <tr><td colspan="4" class="empty-state">Nenhuma prova informada</td></tr>
+        <tr><td colspan="5" class="empty-state">Nenhuma prova registrada</td></tr>
         {% endif %}
       </tbody>
     </table>
   </div>
 </div>
+
+<div id="modalEditar" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--bg-card);border-radius:16px;padding:24px;width:450px;box-shadow:var(--shadow-lg)">
+    <h3 style="margin-bottom:16px">✏️ Editar Prova</h3>
+    <form method="POST" id="formEditar">
+      <div class="form-group"><label>Disciplina</label><select name="disciplina" id="inputDisc" required>{% for d in disciplinas %}<option value="{{ d }}">{{ d }}</option>{% endfor %}</select></div>
+      <div class="form-group"><label>Data</label><input type="date" name="data" id="inputData" required></div>
+      <div class="form-group"><label>Conteúdo</label><input type="text" name="conteudo" id="inputConteudo"></div>
+      <div class="form-group"><label>Observação</label><input type="text" name="observacao" id="inputObs"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+function editarProva(id, disc, data, conteudo, obs) {
+  document.getElementById('formEditar').action = '/representante/provas/editar/' + id;
+  document.getElementById('inputDisc').value = disc;
+  document.getElementById('inputData').value = data;
+  document.getElementById('inputConteudo').value = conteudo;
+  document.getElementById('inputObs').value = obs;
+  document.getElementById('modalEditar').style.display = 'flex';
+}
+function fecharModal() { document.getElementById('modalEditar').style.display = 'none'; }
+</script>
 {% endblock %}

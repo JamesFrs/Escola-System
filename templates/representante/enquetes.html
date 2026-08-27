@@ -3,84 +3,57 @@
 {% block page_title_rep %}📊 Enquetes{% endblock %}
 {% block content_rep %}
 <div class="card" style="margin-bottom:20px">
-  <div class="card-header"><h2>Criar Nova Enquete</h2></div>
-  <form method="POST" style="max-width:600px">
-    <div class="form-group">
-      <label>Título</label>
-      <input type="text" name="titulo" placeholder="Ex: Melhor dia para reunião" required>
+  <div class="card-header"><h2>Criar Enquete</h2></div>
+  <form method="POST" style="max-width:600px" id="formEnquete">
+    <div class="form-group"><label>Pergunta</label><input type="text" name="titulo" placeholder="Ex: Dia de prova?" required></div>
+    <div id="opcoes-container">
+      <div class="form-group"><label>Opção 1</label><input type="text" name="opcoes" required></div>
+      <div class="form-group"><label>Opção 2</label><input type="text" name="opcoes" required></div>
     </div>
-    <div class="form-group">
-      <label>Opções</label>
-      <div id="opcoes-container">
-        <div class="inline-form" style="margin-bottom:8px">
-          <input type="text" name="opcoes" placeholder="Opção 1" required style="flex:1">
-        </div>
-        <div class="inline-form" style="margin-bottom:8px">
-          <input type="text" name="opcoes" placeholder="Opção 2" required style="flex:1">
-        </div>
-      </div>
-      <button type="button" class="btn btn-sm btn-outline" onclick="adicionarOpcao()">+ Adicionar Opção</button>
-    </div>
-    <button type="submit" class="btn btn-success">Criar Enquete</button>
+    <button type="button" class="btn btn-outline" onclick="addOpcao()">+ Adicionar Opção</button>
+    <button type="submit" class="btn btn-success" style="margin-left:8px">Criar Enquete</button>
   </form>
 </div>
 
 <div class="card">
-  <div class="card-header"><h2>Enquetes</h2></div>
+  <div class="card-header"><h2>Enquetes da Turma</h2></div>
   <div class="table-container">
     <table>
-      <thead><tr><th>Título</th><th>Opções e Votos</th><th>Total</th><th>Status</th></tr></thead>
+      <thead><tr><th>Pergunta</th><th>Resultados</th><th>Ações</th></tr></thead>
       <tbody>
         {% for e in enquetes %}
         <tr>
-          <td><strong>{{ e.titulo }}</strong></td>
+          <td><strong>{{ e.titulo }}</strong><br><small>{{ e.total_votos }} voto{{ 's' if e.total_votos != 1 else '' }}</small></td>
           <td>
             {% for o in e.opcoes_data %}
-              <div style="margin-bottom:6px">
-                <strong>{{ o.texto }}</strong>
-                <div style="background:#e2e8f0;border-radius:8px;height:20px;overflow:hidden;margin-top:4px">
-                  <div style="background:{% if o.votos == e.total_votos and e.total_votos > 0 %}var(--success){% else %}var(--primary){% endif %};height:100%;width:{{ (o.votos / e.total_votos * 100) if e.total_votos > 0 else 0 }}%;border-radius:8px"></div>
-                </div>
-                <span style="font-size:12px;color:var(--text-secondary)">{{ o.votos }} voto{{ 's' if o.votos != 1 }}</span>
-              </div>
+              <div style="margin:4px 0">{{ o.texto }}: {{ o.votos }}</div>
             {% endfor %}
           </td>
-          <td><strong>{{ e.total_votos }}</strong></td>
-          <td>
+          <td class="actions">
+            {% if e.criado_por == session.user_codigo %}
             {% if e.ativa %}
-              <span class="badge badge-success">Ativa</span>
-            {% else %}
-              <span class="badge badge-warning">Encerrada</span>
+            <a href="{{ url_for('rep_enquete_fechar', id=e.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Encerrar enquete?')">⏹️</a>
+            {% endif %}
+            <a href="{{ url_for('rep_enquete_excluir', id=e.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir?')" style="color:var(--danger)">🗑️</a>
             {% endif %}
           </td>
         </tr>
         {% endfor %}
         {% if not enquetes %}
-        <tr><td colspan="4" class="empty-state">Nenhuma enquete criada</td></tr>
+        <tr><td colspan="3" class="empty-state">Nenhuma enquete criada</td></tr>
         {% endif %}
       </tbody>
     </table>
   </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
 <script>
-let opcaoCount = 2;
-function adicionarOpcao() {
-  opcaoCount++;
-  const container = document.getElementById('opcoes-container');
+let numOpcoes = 2;
+function addOpcao() {
+  numOpcoes++;
   const div = document.createElement('div');
-  div.className = 'inline-form';
-  div.style.marginBottom = '8px';
-  div.innerHTML = '<input type="text" name="opcoes" placeholder="Opção ' + opcaoCount + '" required style="flex:1"><button type="button" class="btn btn-sm btn-danger" onclick="removerOpcao(this)">✕</button>';
-  container.appendChild(div);
-}
-function removerOpcao(btn) {
-  const container = document.getElementById('opcoes-container');
-  if (container.children.length > 2) {
-    btn.closest('.inline-form').remove();
-  }
+  div.className = 'form-group';
+  div.innerHTML = '<label>Opção ' + numOpcoes + '</label><input type="text" name="opcoes">';
+  document.getElementById('opcoes-container').appendChild(div);
 }
 </script>
 {% endblock %}
