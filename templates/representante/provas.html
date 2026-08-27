@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Provas — Representante{% endblock %}
+{% block page_title_rep %}📅 Provas{% endblock %}
+{% block content_rep %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>Informar Nova Prova</h2></div>
+  <form method="POST" style="max-width:800px">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Disciplina</label>
+        <select name="disciplina" required>
+          {% for d in disciplinas %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Data</label>
+        <input type="date" name="data" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Conteúdo</label>
+      <textarea name="conteudo" rows="2" placeholder="Conteúdo programático..." required></textarea>
+    </div>
+    <div class="form-group">
+      <label>Observação</label>
+      <textarea name="observacao" rows="2" placeholder="Observações adicionais (opcional)"></textarea>
+    </div>
+    <button type="submit" class="btn btn-success">Informar Prova</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-header"><h2>Provas Informadas</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Data</th><th>Disciplina</th><th>Conteúdo</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for p in provas %}
+        <tr>
+          <td><strong>{{ p.data }}</strong></td>
+          <td>{{ p.disciplina }}</td>
+          <td>{{ p.conteudo }}</td>
+          <td>
+            {% if p.status == 'confirmada' %}
+              <span class="badge badge-success">Confirmada</span>
+            {% else %}
+              <span class="badge badge-warning">Pendente</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not provas %}
+        <tr><td colspan="4" class="empty-state">Nenhuma prova informada</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

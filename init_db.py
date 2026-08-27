@@ -29,6 +29,14 @@ def init_db():
         nascimento TEXT
     )""")
 
+    c.execute("""CREATE TABLE IF NOT EXISTS representantes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        turma TEXT NOT NULL,
+        codigo_aluno TEXT NOT NULL,
+        funcao TEXT NOT NULL DEFAULT 'representante',
+        UNIQUE(turma)
+    )""")
+
     c.execute("""CREATE TABLE IF NOT EXISTS notas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         codigo_aluno TEXT NOT NULL,
@@ -47,12 +55,30 @@ def init_db():
         UNIQUE(codigo_aluno, disciplina, turma, data)
     )""")
 
+    c.execute("""CREATE TABLE IF NOT EXISTS frequencia_pendente (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        codigo_aluno TEXT NOT NULL,
+        disciplina TEXT NOT NULL,
+        turma TEXT NOT NULL,
+        data TEXT NOT NULL,
+        presente INTEGER DEFAULT 1,
+        registrado_por TEXT NOT NULL,
+        registrado_por_funcao TEXT NOT NULL,
+        status TEXT DEFAULT 'pendente',
+        UNIQUE(codigo_aluno, disciplina, turma, data)
+    )""")
+
     c.execute("""CREATE TABLE IF NOT EXISTS provas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         turma TEXT NOT NULL,
         disciplina TEXT NOT NULL,
         data TEXT NOT NULL,
-        tipo TEXT DEFAULT 'Prova'
+        tipo TEXT DEFAULT 'Prova',
+        conteudo TEXT DEFAULT '',
+        observacao TEXT DEFAULT '',
+        criado_por TEXT DEFAULT '',
+        criado_por_funcao TEXT DEFAULT '',
+        status TEXT DEFAULT 'confirmada'
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS pendencias (
@@ -68,7 +94,9 @@ def init_db():
         titulo TEXT NOT NULL,
         descricao TEXT NOT NULL,
         turma TEXT NOT NULL,
-        data TEXT DEFAULT (datetime('now','localtime'))
+        data TEXT DEFAULT (datetime('now','localtime')),
+        criado_por TEXT DEFAULT '',
+        criado_por_funcao TEXT DEFAULT ''
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS agenda (
@@ -76,7 +104,8 @@ def init_db():
         titulo TEXT NOT NULL,
         tipo TEXT NOT NULL,
         turma TEXT NOT NULL,
-        data TEXT NOT NULL
+        data TEXT NOT NULL,
+        criado_por TEXT DEFAULT ''
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS historico (
@@ -85,6 +114,76 @@ def init_db():
         acao TEXT NOT NULL,
         aluno TEXT,
         data_hora TEXT DEFAULT (datetime('now','localtime'))
+    )""")
+
+    c.execute("""CREATE TABLE IF NOT EXISTS demandas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        turma TEXT NOT NULL,
+        titulo TEXT NOT NULL,
+        descricao TEXT NOT NULL,
+        categoria TEXT DEFAULT 'Infraestrutura',
+        status TEXT DEFAULT 'Enviada',
+        criado_por TEXT NOT NULL,
+        data TEXT DEFAULT (datetime('now','localtime')),
+        resposta TEXT DEFAULT ''
+    )""")
+
+    c.execute("""CREATE TABLE IF NOT EXISTS sugestoes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        turma TEXT NOT NULL,
+        titulo TEXT NOT NULL,
+        descricao TEXT NOT NULL,
+        status TEXT DEFAULT 'Enviada',
+        criado_por TEXT NOT NULL,
+        data TEXT DEFAULT (datetime('now','localtime')),
+        resposta TEXT DEFAULT ''
+    )""")
+
+    c.execute("""CREATE TABLE IF NOT EXISTS enquetes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        turma TEXT NOT NULL,
+        titulo TEXT NOT NULL,
+        opcoes TEXT NOT NULL,
+        criado_por TEXT NOT NULL,
+        data TEXT DEFAULT (datetime('now','localtime')),
+        ativa INTEGER DEFAULT 1
+    )""")
+
+    c.execute("""CREATE TABLE IF NOT EXISTS votos_enquete (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        enquete_id INTEGER NOT NULL,
+        codigo_aluno TEXT NOT NULL,
+        opcao INTEGER NOT NULL,
+        UNIQUE(enquete_id, codigo_aluno)
+    )""")
+
+    c.execute("""CREATE TABLE IF NOT EXISTS reunioes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        turma TEXT NOT NULL,
+        data TEXT NOT NULL,
+        assuntos TEXT NOT NULL,
+        resumo TEXT DEFAULT '',
+        criado_por TEXT NOT NULL,
+        data_registro TEXT DEFAULT (datetime('now','localtime'))
+    )""")
+
+    c.execute("""CREATE TABLE IF NOT EXISTS notificacoes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        destinatario TEXT NOT NULL,
+        titulo TEXT NOT NULL,
+        mensagem TEXT NOT NULL,
+        lida INTEGER DEFAULT 0,
+        data TEXT DEFAULT (datetime('now','localtime')),
+        link TEXT DEFAULT ''
+    )""")
+
+    c.execute("""CREATE TABLE IF NOT EXISTS atividade_representante (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        representante TEXT NOT NULL,
+        turma TEXT NOT NULL,
+        acao TEXT NOT NULL,
+        detalhes TEXT DEFAULT '',
+        data TEXT DEFAULT (datetime('now','localtime'))
     )""")
 
     # Seed professor

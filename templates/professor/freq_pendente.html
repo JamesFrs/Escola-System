@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Frequência Pendente — E.E.G.{% endblock %}
+{% block page_title %}⏳ Frequência Pendente{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header"><h2>Registros Pendentes dos Representantes</h2></div>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Disciplina</th>
+          <th>Turma</th>
+          <th>Aluno</th>
+          <th>Registrado por</th>
+          <th>Situação</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pendentes %}
+        <tr>
+          <td><strong>{{ p.data }}</strong></td>
+          <td>{{ p.disciplina }}</td>
+          <td><span class="badge badge-primary">{{ p.turma }}</span></td>
+          <td>{{ p.aluno_nome or p.codigo_aluno }}</td>
+          <td>{{ p.registrado_por }}</td>
+          <td>
+            {% if p.presente %}
+              <span class="badge badge-success">Presente</span>
+            {% else %}
+              <span class="badge badge-danger">Falta</span>
+            {% endif %}
+          </td>
+          <td class="actions">
+            <form method="POST" action="{{ url_for('frequencia_confirmar', id=p.id) }}" style="display:inline">
+              <button type="submit" class="btn btn-sm btn-success">✓ Confirmar</button>
+            </form>
+            <form method="POST" action="{{ url_for('frequencia_recusar', id=p.id) }}" style="display:inline">
+              <button type="submit" class="btn btn-sm btn-danger">✗ Recusar</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not pendentes %}
+        <tr><td colspan="7" class="empty-state">Nenhum registro pendente</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

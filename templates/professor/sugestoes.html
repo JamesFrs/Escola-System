@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Sugestões — E.E.G.{% endblock %}
+{% block page_title %}💡 Sugestões{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header"><h2>Sugestões dos Alunos</h2></div>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Turma</th>
+          <th>Título</th>
+          <th>Status</th>
+          <th>Autor</th>
+          <th>Data</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sugestoes %}
+        <tr>
+          <td><span class="badge badge-primary">{{ s.turma }}</span></td>
+          <td><strong>{{ s.titulo }}</strong></td>
+          <td>
+            {% if s.status == 'Enviada' %}
+              <span class="badge badge-warning">{{ s.status }}</span>
+            {% elif s.status == 'Em análise' %}
+              <span class="badge badge-primary">{{ s.status }}</span>
+            {% elif s.status == 'Resolvida' %}
+              <span class="badge badge-success">{{ s.status }}</span>
+            {% elif s.status == 'Recusada' %}
+              <span class="badge badge-danger">{{ s.status }}</span>
+            {% else %}
+              <span class="badge">{{ s.status }}</span>
+            {% endif %}
+          </td>
+          <td>{{ s.autor_nome or s.criado_por }}</td>
+          <td>{{ s.data }}</td>
+          <td>
+            <button class="btn btn-sm btn-primary" onclick="toggleRespostaSug({{ s.id }})">💬 Responder</button>
+          </td>
+        </tr>
+        <tr id="resposta-sug-{{ s.id }}" style="display:none">
+          <td colspan="6" style="background:var(--bg-secondary)">
+            <form method="POST" action="{{ url_for('sugestao_responder', id=s.id) }}" style="max-width:600px;padding:12px 0">
+              <div class="form-row">
+                <div class="form-group" style="flex:1">
+                  <label>Status</label>
+                  <select name="status" required>
+                    <option value="Em análise" {{ 'selected' if s.status == 'Em análise' }}>Em análise</option>
+                    <option value="Resolvida" {{ 'selected' if s.status == 'Resolvida' }}>Resolvida</option>
+                    <option value="Recusada" {{ 'selected' if s.status == 'Recusada' }}>Recusada</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Resposta</label>
+                <textarea name="resposta" rows="3" placeholder="Digite sua resposta...">{{ s.resposta }}</textarea>
+              </div>
+              <button type="submit" class="btn btn-success">Enviar Resposta</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not sugestoes %}
+        <tr><td colspan="6" class="empty-state">Nenhuma sugestão registrada</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function toggleRespostaSug(id) {
+  const row = document.getElementById('resposta-sug-' + id);
+  row.style.display = row.style.display === 'none' ? '' : 'none';
+}
+</script>
+{% endblock %}

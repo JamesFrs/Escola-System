@@ -17,21 +17,29 @@
   <div class="card-header"><h2>Turmas Existentes</h2></div>
   <div class="table-container">
     <table>
-      <thead><tr><th>Turma</th><th>Alunos</th><th>Ações</th></tr></thead>
+      <thead><tr><th>Turma</th><th>Alunos</th><th>Rep.</th><th>Ações</th></tr></thead>
       <tbody>
         {% for t in turmas %}
         <tr>
           <td><strong>{{ t.nome }}</strong></td>
           <td><span class="badge badge-primary">{{ t.total_alunos }} alunos</span></td>
+          <td>
+            {% if t.representante %}
+              <span class="badge badge-success">{{ t.representante }} ({{ t.funcao_rep }})</span>
+            {% else %}
+              <span style="color:var(--text-muted)">—</span>
+            {% endif %}
+          </td>
           <td class="actions">
             <a href="{{ url_for('turma_alunos', id=t.id) }}" class="btn btn-sm btn-primary">👨‍🎓 Gerenciar</a>
+            <a href="{{ url_for('turma_representantes', id=t.id) }}" class="btn btn-sm btn-outline">👥 Rep.</a>
             <button class="btn btn-sm btn-outline" onclick="editarTurma({{ t.id }}, '{{ t.nome }}')">✏️ Editar</button>
             <a href="{{ url_for('turma_excluir', id=t.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir a turma {{ t.nome }}? Alunos não serão excluídos.')" style="color:var(--danger)">🗑️</a>
           </td>
         </tr>
         {% endfor %}
         {% if not turmas %}
-        <tr><td colspan="3" class="empty-state">Nenhuma turma cadastrada</td></tr>
+        <tr><td colspan="4" class="empty-state">Nenhuma turma cadastrada</td></tr>
         {% endif %}
       </tbody>
     </table>

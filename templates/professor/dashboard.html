@@ -9,6 +9,30 @@
   <div class="stat-card"><div class="stat-icon red">⚠️</div><div class="stat-info"><h3>{{ pendencias_abertas }}</h3><p>Pendências Abertas</p></div></div>
   <div class="stat-card"><div class="stat-icon green">📊</div><div class="stat-info"><h3>{{ media_geral }}</h3><p>Média Geral da Escola</p></div></div>
   <div class="stat-card"><div class="stat-icon cyan">✅</div><div class="stat-info"><h3>{{ freq_media }}%</h3><p>Frequência Média</p></div></div>
+  <div class="stat-card"><div class="stat-icon orange">⏳</div><div class="stat-info"><h3>{{ freq_pendente }}</h3><p>Frequência Pendente</p></div></div>
+  <div class="stat-card"><div class="stat-icon purple">📝</div><div class="stat-info"><h3>{{ provas_pendentes }}</h3><p>Provas Pendentes</p></div></div>
+</div>
+
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>📋 Atividades dos Representantes</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Representante</th><th>Turma</th><th>Ação</th><th>Data</th></tr></thead>
+      <tbody>
+        {% for a in atividades %}
+        <tr>
+          <td><strong>{{ a.aluno_nome or a.representante }}</strong></td>
+          <td><span class="badge badge-primary">{{ a.turma }}</span></td>
+          <td>{{ a.acao }}</td>
+          <td>{{ a.data }}</td>
+        </tr>
+        {% endfor %}
+        {% if not atividades %}
+        <tr><td colspan="4" class="empty-state">Nenhuma atividade registrada</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <div class="grid-2">

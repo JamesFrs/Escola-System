@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Calendário — Representante{% endblock %}
+{% block page_title_rep %}📆 Calendário da Turma{% endblock %}
+{% block content_rep %}
+<div class="card">
+  <div class="card-header"><h2>Eventos da Turma</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th></tr></thead>
+      <tbody>
+        {% for e in eventos %}
+        <tr>
+          <td><strong>{{ e.data }}</strong></td>
+          <td>
+            {% if e.tipo == 'Prova' %}
+              <span class="badge badge-danger">📅 Prova</span>
+            {% elif e.tipo == 'Reunião' %}
+              <span class="badge badge-primary">🤝 Reunião</span>
+            {% elif e.tipo == 'Agenda' %}
+              <span class="badge badge-success">📆 Agenda</span>
+            {% else %}
+              <span class="badge badge-warning">{{ e.tipo }}</span>
+            {% endif %}
+          </td>
+          <td>{{ e.descricao }}</td>
+        </tr>
+        {% endfor %}
+        {% if not eventos %}
+        <tr><td colspan="3" class="empty-state">Nenhum evento encontrado</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

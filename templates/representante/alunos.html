@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Alunos — Representante{% endblock %}
+{% block page_title_rep %}👨‍🎓 Alunos da Turma{% endblock %}
+{% block content_rep %}
+<div class="card">
+  <div class="card-header">
+    <h2>{{ turma }}</h2>
+    <span class="badge badge-primary">{{ alunos|length }} aluno{{ 's' if alunos|length != 1 }}</span>
+  </div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Nome</th><th>Código</th><th>Email</th></tr></thead>
+      <tbody>
+        {% for a in alunos %}
+        <tr>
+          <td><strong>{{ a.nome }}</strong></td>
+          <td>{{ a.codigo }}</td>
+          <td>{{ a.email if a.email else '-' }}</td>
+        </tr>
+        {% endfor %}
+        {% if not alunos %}
+        <tr><td colspan="3" class="empty-state">Nenhum aluno encontrado</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Enquetes — Representante{% endblock %}
+{% block page_title_rep %}📊 Enquetes{% endblock %}
+{% block content_rep %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>Criar Nova Enquete</h2></div>
+  <form method="POST" style="max-width:600px">
+    <div class="form-group">
+      <label>Título</label>
+      <input type="text" name="titulo" placeholder="Ex: Melhor dia para reunião" required>
+    </div>
+    <div class="form-group">
+      <label>Opções</label>
+      <div id="opcoes-container">
+        <div class="inline-form" style="margin-bottom:8px">
+          <input type="text" name="opcoes" placeholder="Opção 1" required style="flex:1">
+        </div>
+        <div class="inline-form" style="margin-bottom:8px">
+          <input type="text" name="opcoes" placeholder="Opção 2" required style="flex:1">
+        </div>
+      </div>
+      <button type="button" class="btn btn-sm btn-outline" onclick="adicionarOpcao()">+ Adicionar Opção</button>
+    </div>
+    <button type="submit" class="btn btn-success">Criar Enquete</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-header"><h2>Enquetes</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Título</th><th>Opções e Votos</th><th>Total</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for e in enquetes %}
+        <tr>
+          <td><strong>{{ e.titulo }}</strong></td>
+          <td>
+            {% for o in e.opcoes_data %}
+              <div style="margin-bottom:6px">
+                <strong>{{ o.texto }}</strong>
+                <div style="background:#e2e8f0;border-radius:8px;height:20px;overflow:hidden;margin-top:4px">
+                  <div style="background:{% if o.votos == e.total_votos and e.total_votos > 0 %}var(--success){% else %}var(--primary){% endif %};height:100%;width:{{ (o.votos / e.total_votos * 100) if e.total_votos > 0 else 0 }}%;border-radius:8px"></div>
+                </div>
+                <span style="font-size:12px;color:var(--text-secondary)">{{ o.votos }} voto{{ 's' if o.votos != 1 }}</span>
+              </div>
+            {% endfor %}
+          </td>
+          <td><strong>{{ e.total_votos }}</strong></td>
+          <td>
+            {% if e.ativa %}
+              <span class="badge badge-success">Ativa</span>
+            {% else %}
+              <span class="badge badge-warning">Encerrada</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not enquetes %}
+        <tr><td colspan="4" class="empty-state">Nenhuma enquete criada</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let opcaoCount = 2;
+function adicionarOpcao() {
+  opcaoCount++;
+  const container = document.getElementById('opcoes-container');
+  const div = document.createElement('div');
+  div.className = 'inline-form';
+  div.style.marginBottom = '8px';
+  div.innerHTML = '<input type="text" name="opcoes" placeholder="Opção ' + opcaoCount + '" required style="flex:1"><button type="button" class="btn btn-sm btn-danger" onclick="removerOpcao(this)">✕</button>';
+  container.appendChild(div);
+}
+function removerOpcao(btn) {
+  const container = document.getElementById('opcoes-container');
+  if (container.children.length > 2) {
+    btn.closest('.inline-form').remove();
+  }
+}
+</script>
+{% endblock %}

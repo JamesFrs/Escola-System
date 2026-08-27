@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Frequência — Representante{% endblock %}
+{% block page_title_rep %}✅ Frequência{% endblock %}
+{% block content_rep %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>Registrar Frequência</h2></div>
+  <form method="GET" action="{{ url_for('rep_frequencia') }}" style="display:flex;gap:12px;align-items:end;flex-wrap:wrap;padding:16px 20px">
+    <div class="form-group" style="min-width:160px">
+      <label>Disciplina</label>
+      <select name="disciplina" required onchange="this.form.submit()">
+        <option value="">Selecione...</option>
+        {% for d in disciplinas %}
+        <option value="{{ d }}" {{ 'selected' if d == disc_sel }}>{{ d }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="min-width:160px">
+      <label>Data</label>
+      <input type="date" name="data" value="{{ data_sel }}" required onchange="this.form.submit()">
+    </div>
+  </form>
+</div>
+
+{% if alunos %}
+<div class="card">
+  <div class="card-header">
+    <h2>{{ disc_sel }} — {{ turma }} — {{ data_sel }}</h2>
+  </div>
+  <form method="POST">
+    <input type="hidden" name="disciplina" value="{{ disc_sel }}">
+    <input type="hidden" name="data" value="{{ data_sel }}">
+    <div class="table-container">
+      <table>
+        <thead><tr><th>Nome</th><th>Código</th><th>Situação</th><th>Presença</th></tr></thead>
+        <tbody>
+          {% for a in alunos %}
+          <tr>
+            <td><strong>{{ a.nome }}</strong></td>
+            <td>{{ a.codigo }}</td>
+            <td>
+              {% if a.status is not none %}
+                {% if a.status == 1 %}
+                  <span class="badge badge-success">Presente</span>
+                {% else %}
+                  <span class="badge badge-danger">Faltou</span>
+                {% endif %}
+              {% else %}
+                <span class="badge badge-warning">Não registrado</span>
+              {% endif %}
+            </td>
+            <td>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" name="presenca_{{ a.codigo }}" {{ 'checked' if a.status != 0 }}
+                       onchange="this.closest('tr').querySelector('.badge').className='badge '+(this.checked?'badge-success':'badge-danger');this.closest('tr').querySelector('.badge').textContent=this.checked?'Presente':'Faltou'">
+                Presente
+              </label>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div style="padding:16px;text-align:right">
+      <button type="submit" class="btn btn-success">💾 Salvar Frequência</button>
+    </div>
+  </form>
+</div>
+{% endif %}
+{% endblock %}
