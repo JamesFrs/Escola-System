@@ -979,7 +979,19 @@ def rep_frequencia():
         log_atividade_rep(codigo, turma, f'Registrou frequência: {disciplina} em {data}')
         flash('Frequência enviada para aprovação do professor!', 'success')
         return redirect(url_for('rep_frequencia'))
-    return render_template('representante/frequencia.html', turma=turma, disciplinas=DISCIPLINAS)
+
+    disc_sel = request.args.get('disciplina', '')
+    data_sel = request.args.get('data', datetime.now().strftime('%Y-%m-%d'))
+    alunos = []
+    if disc_sel and data_sel:
+        alunos = query_db("""
+            SELECT a.*,
+                   (SELECT fp.presente FROM frequencia_pendente fp
+                    WHERE fp.codigo_aluno=a.codigo AND fp.disciplina=? AND fp.turma=? AND fp.data=?) as status
+            FROM alunos a WHERE a.turma=? ORDER BY a.nome
+        """, [disc_sel, turma, data_sel, turma])
+    return render_template('representante/frequencia.html', turma=turma, disciplinas=DISCIPLINAS,
+                           disc_sel=disc_sel, data_sel=data_sel, alunos=alunos)
 
 
 @app.route('/representante/avisos', methods=['GET', 'POST'])
