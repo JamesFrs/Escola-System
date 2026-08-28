@@ -220,6 +220,26 @@ def init_db():
         UNIQUE(turno, tempo)
     )""")
 
+    # Migracoes - adicionar colunas que podem nao existir em bancos antigos
+    migracoes = [
+        ("turmas", "turno", "TEXT DEFAULT 'vespertino'"),
+        ("alunos", "deficiencia", "TEXT DEFAULT 'nao'"),
+        ("alunos", "desc_deficiencia", "TEXT DEFAULT ''"),
+        ("notas", "bimestre", "INTEGER DEFAULT 1"),
+        ("frequencia", "bimestre", "INTEGER DEFAULT 1"),
+        ("frequencia", "atestado", "INTEGER DEFAULT 0"),
+        ("provas", "bimestre", "INTEGER DEFAULT 1"),
+        ("frequencia_pendente", "bimestre", "INTEGER DEFAULT 1"),
+        ("professores", "turnos", "TEXT DEFAULT 'vespertino'"),
+    ]
+    for tabela, coluna, tipo in migracoes:
+        try:
+            cols = [col[1] for col in c.execute(f"PRAGMA table_info({tabela})").fetchall()]
+            if coluna not in cols:
+                c.execute(f"ALTER TABLE {tabela} ADD COLUMN {coluna} {tipo}")
+        except:
+            pass
+
     # Seed professor
     existing = c.execute("SELECT id FROM professores WHERE email='admin@escola.com'").fetchone()
     if not existing:
@@ -316,62 +336,6 @@ def init_db():
         if not exists:
             c.execute("INSERT INTO professores (nome, email, senha, disciplina, turmas, turnos, bio) VALUES (?, ?, ?, ?, ?, ?, '')",
                       (nome, email, generate_password_hash('123456'), disc, turmas_prof, turnos))
-
-    # Adicionar coluna bimestre na tabela notas se nao existir
-    try:
-        c.execute("PRAGMA table_info(notas)")
-        cols = [col[1] for col in c.fetchall()]
-        if 'bimestre' not in cols:
-            c.execute("ALTER TABLE notas ADD COLUMN bimestre INTEGER DEFAULT 1")
-    except:
-        pass
-
-    # Adicionar coluna bimestre na tabela frequencia se nao existir
-    try:
-        c.execute("PRAGMA table_info(frequencia)")
-        cols = [col[1] for col in c.fetchall()]
-        if 'bimestre' not in cols:
-            c.execute("ALTER TABLE frequencia ADD COLUMN bimestre INTEGER DEFAULT 1")
-    except:
-        pass
-
-    # Adicionar coluna bimestre na tabela provas se nao existir
-    try:
-        c.execute("PRAGMA table_info(provas)")
-        cols = [col[1] for col in c.fetchall()]
-        if 'bimestre' not in cols:
-            c.execute("ALTER TABLE provas ADD COLUMN bimestre INTEGER DEFAULT 1")
-    except:
-        pass
-
-    # Adicionar colunas deficiencia na tabela alunos se nao existirem
-    try:
-        c.execute("PRAGMA table_info(alunos)")
-        cols = [col[1] for col in c.fetchall()]
-        if 'deficiencia' not in cols:
-            c.execute("ALTER TABLE alunos ADD COLUMN deficiencia TEXT DEFAULT 'nao'")
-        if 'desc_deficiencia' not in cols:
-            c.execute("ALTER TABLE alunos ADD COLUMN desc_deficiencia TEXT DEFAULT ''")
-    except:
-        pass
-
-    # Adicionar coluna turnos na tabela professores se nao existir
-    try:
-        c.execute("PRAGMA table_info(professores)")
-        cols = [col[1] for col in c.fetchall()]
-        if 'turnos' not in cols:
-            c.execute("ALTER TABLE professores ADD COLUMN turnos TEXT DEFAULT 'vespertino'")
-    except:
-        pass
-
-    # Adicionar coluna status na tabela frequencia_pendente se nao existir
-    try:
-        c.execute("PRAGMA table_info(frequencia_pendente)")
-        cols = [col[1] for col in c.fetchall()]
-        if 'bimestre' not in cols:
-            c.execute("ALTER TABLE frequencia_pendente ADD COLUMN bimestre INTEGER DEFAULT 1")
-    except:
-        pass
 
     conn.commit()
     conn.close()
