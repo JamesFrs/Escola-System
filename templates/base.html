@@ -151,7 +151,13 @@
 
     // Dark/Light mode
     function getTheme() { return localStorage.getItem('theme') || 'light'; }
-    function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); }
+    function applyTheme(t) {
+      document.documentElement.setAttribute('data-theme', t);
+      var icons = document.querySelectorAll('.theme-toggle');
+      for (var i = 0; i < icons.length; i++) {
+        icons[i].innerHTML = t === 'dark' ? '&#9789;' : '&#9788;';
+      }
+    }
     function toggleTheme() {
       const next = getTheme() === 'dark' ? 'light' : 'dark';
       localStorage.setItem('theme', next);
