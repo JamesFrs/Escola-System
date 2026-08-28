@@ -311,7 +311,10 @@ def turmas_lista():
         return redirect(url_for('login'))
     turno_filtro = request.args.get('turno', '')
     if turno_filtro:
-        turmas_raw = query_db("SELECT * FROM turmas WHERE turno=? ORDER BY nome", [turno_filtro])
+        try:
+            turmas_raw = query_db("SELECT * FROM turmas WHERE turno=? ORDER BY nome", [turno_filtro])
+        except:
+            turmas_raw = query_db("SELECT * FROM turmas ORDER BY nome")
     else:
         turmas_raw = query_db("SELECT * FROM turmas ORDER BY nome")
     turmas = []
@@ -1269,7 +1272,7 @@ def horarios():
     if session.get('user_type') != 'professor':
         return redirect(url_for('login'))
     turmas = get_turmas()
-    horarios_oficiais = query_db("SELECT * FROM horarios_oficiais WHERE turno='vespertino' ORDER BY tempo")
+    horarios_oficiais = query_db("SELECT * FROM horarios_oficiais ORDER BY tempo")
     professores = query_db("SELECT nome, disciplina FROM professores ORDER BY nome")
     if request.method == 'POST':
         turma = request.form['turma']
@@ -1312,7 +1315,7 @@ def rep_horarios():
     if session.get('user_type') != 'representante':
         return redirect(url_for('login'))
     turma = session['user_turma']
-    horarios_oficiais = query_db("SELECT * FROM horarios_oficiais WHERE turno='vespertino' ORDER BY tempo")
+    horarios_oficiais = query_db("SELECT * FROM horarios_oficiais ORDER BY tempo")
     professores = query_db("SELECT nome, disciplina FROM professores ORDER BY nome")
     if request.method == 'POST':
         execute_db("DELETE FROM horarios WHERE turma=?", [turma])

@@ -238,7 +238,9 @@ def init_db():
             cols = [col[1] for col in c.execute(f"PRAGMA table_info({tabela})").fetchall()]
             if coluna not in cols:
                 c.execute(f"ALTER TABLE {tabela} ADD COLUMN {coluna} {tipo}")
-        except:
+                print(f"Migracao: adicionada coluna {coluna} na tabela {tabela}")
+        except Exception as e:
+            print(f"Erro na migracao {tabela}.{coluna}: {e}")
             pass
 
     # Seed professor
