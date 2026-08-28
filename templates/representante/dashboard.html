@@ -4,7 +4,7 @@
 {% block content_rep %}
 <div class="portal-welcome">
   <h2>Olá, {{ session.user_name }}! 👋</h2>
-  <p>Turma: <strong>{{ turma }}</strong> — Painel do Representante</p>
+  <p>Turma: <strong>{{ turma }}</strong> — {{ funcao|capitalize }}</p>
 </div>
 
 <div class="stats-grid">
@@ -68,6 +68,82 @@
           {% endfor %}
           {% if not avisos %}
           <tr><td colspan="2" class="empty-state">Nenhum aviso recente</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:20px">
+  <div class="card-header"><h2>📝 Minhas Notas</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Disciplina</th><th>Nota</th><th>Situação</th></tr></thead>
+      <tbody>
+        {% for n in notas %}
+        <tr>
+          <td><strong>{{ n.disciplina }}</strong></td>
+          <td><span class="badge {% if n.nota >= 7 %}badge-success{% elif n.nota >= 5 %}badge-warning{% else %}badge-danger{% endif %}">{{ n.nota }}</span></td>
+          <td>{% if n.nota >= 7 %}Aprovado{% elif n.nota >= 5 %}Recuperação{% else %}Reprovado{% endif %}</td>
+        </tr>
+        {% endfor %}
+        {% if notas %}
+        <tr style="font-weight:700;background:var(--bg)">
+          <td>Média Geral</td>
+          <td><span class="badge {% if media_geral >= 7 %}badge-success{% elif media_geral >= 5 %}badge-warning{% else %}badge-danger{% endif %}">{{ media_geral }}</span></td>
+          <td>{% if media_geral >= 7 %}Aprovado{% elif media_geral >= 5 %}Recuperação{% else %}Reprovado{% endif %}</td>
+        </tr>
+        {% endif %}
+        {% if not notas %}
+        <tr><td colspan="3" class="empty-state">Nenhuma nota registrada</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="grid-2" style="margin-top:20px">
+  <div class="card">
+    <div class="card-header"><h2>✅ Minha Frequência</h2></div>
+    <div class="table-container">
+      <table>
+        <thead><tr><th>Disciplina</th><th>Presenças</th><th>Faltas</th><th>%</th></tr></thead>
+        <tbody>
+          {% for f in freq_por_disc %}
+          <tr>
+            <td><strong>{{ f.disciplina }}</strong></td>
+            <td>{{ f.presencas }}</td>
+            <td>{{ f.faltas or 0 }}</td>
+            <td>
+              {% set pct = ((f.presencas / f.total) * 100)|round(1) if f.total > 0 else 0 %}
+              <span class="badge {% if pct >= 75 %}badge-success{% elif pct >= 50 %}badge-warning{% else %}badge-danger{% endif %}">{{ pct }}%</span>
+            </td>
+          </tr>
+          {% endfor %}
+          {% if not freq_por_disc %}
+          <tr><td colspan="4" class="empty-state">Nenhuma frequência registrada</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2>📅 Próximas Provas</h2></div>
+    <div class="table-container">
+      <table>
+        <thead><tr><th>Data</th><th>Disciplina</th><th>Tipo</th></tr></thead>
+        <tbody>
+          {% for p in provas %}
+          <tr>
+            <td><strong>{{ p.data }}</strong></td>
+            <td>{{ p.disciplina }}</td>
+            <td><span class="badge {% if p.tipo == 'Prova' %}badge-danger{% elif p.tipo == 'Trabalho' %}badge-warning{% else %}badge-success{% endif %}">{{ p.tipo }}</span></td>
+          </tr>
+          {% endfor %}
+          {% if not provas %}
+          <tr><td colspan="3" class="empty-state">Nenhuma prova agendada</td></tr>
           {% endif %}
         </tbody>
       </table>

@@ -1109,10 +1109,29 @@ def rep_dashboard():
     enquetes_ativas = query_db("SELECT COUNT(*) as c FROM enquetes WHERE turma=? AND ativa=1", [turma], one=True)['c']
     avisos = query_db("SELECT * FROM avisos WHERE turma=? ORDER BY data DESC LIMIT 5", [turma])
 
+    notas = query_db("SELECT * FROM notas WHERE codigo_aluno=? ORDER BY disciplina", [codigo])
+    provas = query_db("SELECT * FROM provas WHERE turma=? AND status='confirmada' ORDER BY data", [turma])
+    freq_por_disc = query_db("""
+        SELECT disciplina, COUNT(*) as total,
+               SUM(CASE WHEN presente=1 THEN 1 ELSE 0 END) as presencas,
+               SUM(CASE WHEN presente=0 THEN 1 ELSE 0 END) as faltas
+        FROM frequencia WHERE codigo_aluno=? GROUP BY disciplina ORDER BY disciplina
+    """, [codigo])
+
+    media_geral = 0
+    count = 0
+    for n in notas:
+        if n['nota'] > 0:
+            media_geral += n['nota']
+            count += 1
+    if count > 0:
+        media_geral = round(media_geral / count, 1)
+
     return render_template('representante/dashboard.html', aluno=aluno, turma=turma, funcao=funcao,
                            freq_pendente=freq_pendente, provas_pendentes=provas_pendentes,
                            demandas_abertas=demandas_abertas, enquetes_ativas=enquetes_ativas,
-                           avisos=avisos)
+                           avisos=avisos, notas=notas, provas=provas,
+                           freq_por_disc=freq_por_disc, media_geral=media_geral)
 
 
 @app.route('/representante/frequencia', methods=['GET', 'POST'])
