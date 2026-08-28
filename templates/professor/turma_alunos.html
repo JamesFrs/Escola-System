@@ -10,26 +10,31 @@
 <!-- Adicionar aluno existente de outra turma -->
 {% if outros %}
 <div class="card" style="margin-bottom:20px">
-  <div class="card-header"><h2> Adicionar Aluno de Outra Turma</h2></div>
-  <div class="table-container">
-    <table>
-      <thead><tr><th>Nome</th><th>Código</th><th>Turma Atual</th><th>Ação</th></tr></thead>
-      <tbody>
-        {% for a in outros %}
-        <tr>
-          <td><strong>{{ a.nome }}</strong></td>
-          <td>{{ a.codigo }}</td>
-          <td><span class="badge badge-primary">{{ a.turma }}</span></td>
-          <td>
-            <form method="POST" action="{{ url_for('turma_adicionar_aluno', id=turma.id) }}" style="display:inline">
-              <input type="hidden" name="codigo" value="{{ a.codigo }}">
-              <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Mover {{ a.nome }} para {{ turma.nome }}?')">Mover para {{ turma.nome }}</button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="card-header" style="cursor:pointer" onclick="toggleOutros()">
+    <h2>Adicionar Aluno de Outra Turma ({{ outros|length }})</h2>
+    <span id="arrowOutros" style="font-size:12px;transition:transform 0.2s">&#9660;</span>
+  </div>
+  <div id="listaOutros" style="display:none">
+    <div class="table-container">
+      <table>
+        <thead><tr><th>Nome</th><th>Codigo</th><th>Turma Atual</th><th>Acao</th></tr></thead>
+        <tbody>
+          {% for a in outros %}
+          <tr>
+            <td><strong>{{ a.nome }}</strong></td>
+            <td>{{ a.codigo }}</td>
+            <td><span class="badge badge-primary">{{ a.turma }}</span></td>
+            <td>
+              <form method="POST" action="{{ url_for('turma_adicionar_aluno', id=turma.id) }}" style="display:inline">
+                <input type="hidden" name="codigo" value="{{ a.codigo }}">
+                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Mover {{ a.nome }} para {{ turma.nome }}?')">Mover</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endif %}
@@ -121,6 +126,17 @@ function abrirModalRemover(codigo, nome) {
 }
 function fecharModal(id) {
   document.getElementById(id).style.display = 'none';
+}
+function toggleOutros() {
+  const el = document.getElementById('listaOutros');
+  const arrow = document.getElementById('arrowOutros');
+  if (el.style.display === 'none') {
+    el.style.display = 'block';
+    arrow.style.transform = 'rotate(180deg)';
+  } else {
+    el.style.display = 'none';
+    arrow.style.transform = 'rotate(0deg)';
+  }
 }
 </script>
 {% endblock %}
