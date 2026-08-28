@@ -231,6 +231,7 @@ def init_db():
         ("provas", "bimestre", "INTEGER DEFAULT 1"),
         ("frequencia_pendente", "bimestre", "INTEGER DEFAULT 1"),
         ("professores", "turnos", "TEXT DEFAULT 'vespertino'"),
+        ("horarios_oficiais", "turno", "TEXT DEFAULT 'vespertino'"),
     ]
     for tabela, coluna, tipo in migracoes:
         try:
