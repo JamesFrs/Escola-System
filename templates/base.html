@@ -14,8 +14,13 @@
   <div class="app-layout">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <h2>Sistema Escolar (beta)</h2>
-        <p>Painel Professor</p>
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div>
+            <h2>Sistema Escolar (beta)</h2>
+            <p>Painel Professor</p>
+          </div>
+          <button class="sidebar-close" onclick="document.getElementById('sidebar').classList.remove('open')">&#10005;</button>
+        </div>
       </div>
       <nav class="sidebar-nav">
         <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard <span class="arrow">&#8250;</span></a>
@@ -69,8 +74,13 @@
   <div class="app-layout">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <h2>Sistema Escolar (beta)</h2>
-        <p>Representante — {{ session.user_turma }}</p>
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div>
+            <h2>Sistema Escolar (beta)</h2>
+            <p>Representante — {{ session.user_turma }}</p>
+          </div>
+          <button class="sidebar-close" onclick="document.getElementById('sidebar').classList.remove('open')">&#10005;</button>
+        </div>
       </div>
       <nav class="sidebar-nav">
         <a href="{{ url_for('rep_dashboard') }}" class="{% if request.endpoint == 'rep_dashboard' %}active{% endif %}">Minha Turma <span class="arrow">&#8250;</span></a>
