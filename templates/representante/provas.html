@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Provas — Representante{% endblock %}
-{% block page_title_rep %}📅 Informar Provas{% endblock %}
+{% block page_title_rep %} Informar Provas{% endblock %}
 {% block content_rep %}
 <div class="card" style="margin-bottom:20px">
   <div class="card-header"><h2>Informar Nova Prova</h2></div>
@@ -32,8 +32,8 @@
           <td><span class="badge {% if p.status == 'confirmada' %}badge-success{% else %}badge-warning{% endif %}">{{ p.status }}</span></td>
           <td class="actions">
             {% if p.criado_por == session.user_codigo and p.status == 'pendente' %}
-            <button class="btn btn-sm btn-outline" onclick="editarProva({{ p.id }}, '{{ p.disciplina }}', '{{ p.data }}', `{{ p.conteudo }}`, `{{ p.observacao }}`)">✏️</button>
-            <a href="{{ url_for('rep_prova_excluir', id=p.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir?')" style="color:var(--danger)">🗑️</a>
+            <button class="btn btn-sm btn-outline" onclick="editarProva({{ p.id }}, '{{ p.disciplina }}', '{{ p.data }}', `{{ p.conteudo }}`, `{{ p.observacao }}`)"></button>
+            <a href="{{ url_for('rep_prova_excluir', id=p.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir?')" style="color:var(--danger)"></a>
             {% endif %}
           </td>
         </tr>
@@ -48,7 +48,7 @@
 
 <div id="modalEditar" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
   <div style="background:var(--bg-card);border-radius:16px;padding:24px;width:450px;box-shadow:var(--shadow-lg)">
-    <h3 style="margin-bottom:16px">✏️ Editar Prova</h3>
+    <h3 style="margin-bottom:16px"> Editar Prova</h3>
     <form method="POST" id="formEditar">
       <div class="form-group"><label>Disciplina</label><select name="disciplina" id="inputDisc" required>{% for d in disciplinas %}<option value="{{ d }}">{{ d }}</option>{% endfor %}</select></div>
       <div class="form-group"><label>Data</label><input type="date" name="data" id="inputData" required></div>

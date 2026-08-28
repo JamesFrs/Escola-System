@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Demandas — Sistema Escolar (beta){% endblock %}
-{% block page_title %}📋 Demandas{% endblock %}
+{% block page_title %} Demandas{% endblock %}
 {% block content %}
 <div class="card">
   <div class="card-header"><h2>Demandas dos Alunos</h2></div>
@@ -39,7 +39,7 @@
           <td>{{ d.autor_nome or d.criado_por }}</td>
           <td>{{ d.data }}</td>
           <td>
-            <button class="btn btn-sm btn-primary" onclick="toggleResposta({{ d.id }})">💬 Responder</button>
+            <button class="btn btn-sm btn-primary" onclick="toggleResposta({{ d.id }})"> Responder</button>
           </td>
         </tr>
         <tr id="resposta-{{ d.id }}" style="display:none">

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Sugestões — Sistema Escolar (beta){% endblock %}
-{% block page_title %}💡 Sugestões{% endblock %}
+{% block page_title %} Sugestões{% endblock %}
 {% block content %}
 <div class="card">
   <div class="card-header"><h2>Sugestões dos Alunos</h2></div>
@@ -37,7 +37,7 @@
           <td>{{ s.autor_nome or s.criado_por }}</td>
           <td>{{ s.data }}</td>
           <td>
-            <button class="btn btn-sm btn-primary" onclick="toggleRespostaSug({{ s.id }})">💬 Responder</button>
+            <button class="btn btn-sm btn-primary" onclick="toggleRespostaSug({{ s.id }})"> Responder</button>
           </td>
         </tr>
         <tr id="resposta-sug-{{ s.id }}" style="display:none">

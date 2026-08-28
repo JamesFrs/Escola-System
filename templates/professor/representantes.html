@@ -1,32 +1,56 @@
 {% extends "base.html" %}
-{% block title %}Representantes — {{ turma.nome }} — Sistema Escolar (beta){% endblock %}
-{% block page_title %}👥 Representantes — {{ turma.nome }}{% endblock %}
+{% block title %}Representantes — {{ turma.nome }}{% endblock %}
+{% block page_title %}Representantes — {{ turma.nome }}{% endblock %}
 {% block content %}
 <a href="{{ url_for('turmas_lista') }}" class="btn btn-outline" style="margin-bottom:16px">← Voltar para Turmas</a>
 
-<div class="card" style="margin-bottom:20px">
-  <div class="card-header"><h2>Representante Atual</h2></div>
-  {% if representante %}
-  <div style="padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-    <div>
-      <strong>{{ representante.codigo_aluno }}</strong>
-      <span class="badge badge-primary" style="margin-left:8px">{{ representante.funcao|capitalize }}</span>
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header"><h2>Representante</h2></div>
+    {% if representante %}
+    {% set nome_rep = '' %}
+    {% for a in alunos %}{% if a.codigo == representante.codigo_aluno %}{% set nome_rep = a.nome %}{% endif %}{% endfor %}
+    <div style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <strong>{{ nome_rep or representante.codigo_aluno }}</strong>
+        <br><small style="color:var(--text-secondary)">{{ representante.codigo_aluno }}</small>
+      </div>
+      <form method="POST" style="margin:0">
+        <input type="hidden" name="acao" value="remover">
+        <input type="hidden" name="funcao" value="representante">
+        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Remover representante?')">Remover</button>
+      </form>
     </div>
-    <form method="POST" style="margin:0">
-      <input type="hidden" name="acao" value="remover">
-      <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Remover representante desta turma?')">Remover</button>
-    </form>
+    {% else %}
+    <div style="padding:16px 20px;color:var(--text-secondary)">Nenhum representante definido</div>
+    {% endif %}
   </div>
-  {% else %}
-  <div style="padding:16px 20px">
-    <p class="empty-state" style="margin:0">Nenhum representante definido para esta turma</p>
+
+  <div class="card">
+    <div class="card-header"><h2>Vice-Representante</h2></div>
+    {% if vice %}
+    {% set nome_vice = '' %}
+    {% for a in alunos %}{% if a.codigo == vice.codigo_aluno %}{% set nome_vice = a.nome %}{% endif %}{% endfor %}
+    <div style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <strong>{{ nome_vice or vice.codigo_aluno }}</strong>
+        <br><small style="color:var(--text-secondary)">{{ vice.codigo_aluno }}</small>
+      </div>
+      <form method="POST" style="margin:0">
+        <input type="hidden" name="acao" value="remover">
+        <input type="hidden" name="funcao" value="vice">
+        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Remover vice-representante?')">Remover</button>
+      </form>
+    </div>
+    {% else %}
+    <div style="padding:16px 20px;color:var(--text-secondary)">Nenhum vice-representante definido</div>
+    {% endif %}
   </div>
-  {% endif %}
 </div>
 
-<div class="card">
+<div class="card" style="margin-top:20px">
   <div class="card-header"><h2>Definir Representante</h2></div>
-  <form method="POST" style="max-width:500px">
+  <form method="POST" style="max-width:500px;padding:16px 20px">
     <input type="hidden" name="acao" value="definir">
     <div class="form-group">
       <label>Aluno</label>
@@ -38,10 +62,10 @@
       </select>
     </div>
     <div class="form-group">
-      <label>Função</label>
+      <label>Funcao</label>
       <select name="funcao" required>
         <option value="representante">Representante</option>
-        <option value="vice-representante">Vice-Representante</option>
+        <option value="vice">Vice-Representante</option>
       </select>
     </div>
     <button type="submit" class="btn btn-success">Definir</button>

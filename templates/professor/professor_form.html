@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}{{ 'Editar' if professor else 'Novo' }} Professor — Sistema Escolar (beta){% endblock %}
-{% block page_title %}{{ '✏️ Editar' if professor else '➕ Novo' }} Professor{% endblock %}
+{% block title %}{{ 'Editar' if professor else 'Novo' }} Professor{% endblock %}
+{% block page_title %}{{ 'Editar' if professor else 'Novo' }} Professor{% endblock %}
 {% block content %}
 <div class="card" style="max-width:700px">
   <div class="card-header"><h2>{{ 'Editar' if professor else 'Cadastrar' }} Professor</h2></div>
@@ -18,7 +18,7 @@
     <div class="form-row">
       <div class="form-group">
         <label>Senha {% if not professor %}*{% else %}(deixe vazio para manter){% endif %}</label>
-        <input type="password" name="senha" {{ 'required' if not professor }} placeholder="{{ '••••••' if professor else 'Senha' }}">
+        <input type="password" name="senha" {{ 'required' if not professor }} placeholder="{{ 'Senha' if not professor else 'Deixe vazio para manter' }}">
       </div>
       <div class="form-group">
         <label>Disciplina Principal *</label>
@@ -30,27 +30,32 @@
         </select>
       </div>
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Turmas</label>
-        <input type="text" name="turmas" value="{{ professor.turmas if professor else '' }}" placeholder="Ex: 1º Ano A, 2º Ano B">
-      </div>
-      <div class="form-group">
-        <label>Email Institucional</label>
-        <input type="email" name="email_institucional" value="{{ professor.email_institucional if professor else '' }}" placeholder="email@instituicao.edu.br">
+    <div class="form-group">
+      <label>Turmas</label>
+      <input type="text" name="turmas" value="{{ professor.turmas if professor else '' }}" placeholder="Ex: 1 Ano A, 2 Ano B">
+    </div>
+    <div class="form-group">
+      <label>Turnos de Trabalho *</label>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        {% set turnos_atuais = professor.turnos.split(',') if professor and professor.turnos else [] %}
+        <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer">
+          <input type="checkbox" name="turnos" value="matutino" {{ 'checked' if 'matutino' in turnos_atuais }}> Matutino
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer">
+          <input type="checkbox" name="turnos" value="vespertino" {{ 'checked' if 'vespertino' in turnos_atuais or not professor }}> Vespertino
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer">
+          <input type="checkbox" name="turnos" value="noturno" {{ 'checked' if 'noturno' in turnos_atuais }}> Noturno
+        </label>
       </div>
     </div>
     <div class="form-group">
-      <label>Horário de Atendimento</label>
-      <input type="text" name="horario_atendimento" value="{{ professor.horario_atendimento if professor else '' }}" placeholder="Ex: Seg-Sex 14:00-16:00">
-    </div>
-    <div class="form-group">
-      <label>Biografia / Informações Profissionais</label>
-      <textarea name="bio" rows="3" placeholder="Formação, experiência, etc.">{{ professor.bio if professor else '' }}</textarea>
+      <label>Biografia</label>
+      <textarea name="bio" rows="3" placeholder="Formacao, experiencia, etc.">{{ professor.bio if professor else '' }}</textarea>
     </div>
     <div style="display:flex;gap:12px;justify-content:flex-end">
       <a href="{{ url_for('professores_lista') }}" class="btn btn-outline">Cancelar</a>
-      <button type="submit" class="btn btn-primary">{{ 'Salvar Alterações' if professor else 'Cadastrar' }}</button>
+      <button type="submit" class="btn btn-primary">{{ 'Salvar Alteracoes' if professor else 'Cadastrar' }}</button>
     </div>
   </form>
 </div>

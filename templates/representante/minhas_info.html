@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block title %}Minhas Informações — Representante{% endblock %}
+{% block page_title_rep %} Minhas Informações como Aluno{% endblock %}
+{% block content_rep %}
+
+<div class="portal-welcome">
+  <h2>{{ aluno.nome }}</h2>
+  <p>Código: <strong>{{ aluno.codigo }}</strong> — Turma: <strong>{{ turma }}</strong> — Média: <strong>{{ media_geral }}</strong> — {{ situacao }}</p>
+  <a href="{{ url_for('portal_calendario_mensal') }}" class="btn btn-primary" style="margin-top:10px"> Ver Calendário Completo</a>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header"><h2> Meu Perfil</h2></div>
+    <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="info-box"><label>Nome</label><p>{{ aluno.nome }}</p></div>
+      <div class="info-box"><label>Código</label><p>{{ aluno.codigo }}</p></div>
+      <div class="info-box"><label>Turma</label><p>{{ aluno.turma }}</p></div>
+      <div class="info-box"><label>Nascimento</label><p>{{ aluno.nascimento or 'Não informado' }}</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2> Resumo</h2></div>
+    <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="info-box"><label>Média Geral</label><p><span class="badge {% if media_geral >= 7 %}badge-success{% elif media_geral >= 5 %}badge-warning{% else %}badge-danger{% endif %}">{{ media_geral }}</span></p></div>
+      <div class="info-box"><label>Situação</label><p><span class="badge {% if situacao == 'Aprovado' %}badge-success{% elif situacao == 'Recuperação' %}badge-warning{% else %}badge-danger{% endif %}">{{ situacao }}</span></p></div>
+      {% if total_geral and total_geral.t %}
+      {% set pres_geral = total_geral.t - (total_geral.f or 0) %}
+      {% set pct_geral = ((pres_geral / total_geral.t) * 100)|round(1) if total_geral.t > 0 else 0 %}
+      <div class="info-box"><label>Frequência Geral</label><p><span class="badge {% if pct_geral >= 75 %}badge-success{% elif pct_geral >= 50 %}badge-warning{% else %}badge-danger{% endif %}">{{ pct_geral }}%</span></p></div>
+      <div class="info-box"><label>Total Presenças/Faltas</label><p>{{ pres_geral }}/{{ total_geral.f or 0 }}</p></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><h2> Boletim Escolar</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Disciplina</th><th>Nota</th><th>Presenças</th><th>Faltas</th><th>Freq.</th><th>Situação</th></tr></thead>
+      <tbody>
+        {% for b in boletim %}
+        <tr>
+          <td><strong>{{ b.disciplina }}</strong></td>
+          <td><span class="badge {% if b.nota >= 7 %}badge-success{% elif b.nota >= 5 %}badge-warning{% else %}badge-danger{% endif %}">{{ b.nota }}</span></td>
+          <td>{{ b.presencas }}</td>
+          <td>{{ b.faltas }}</td>
+          <td><span class="badge {% if b.frequencia >= 75 %}badge-success{% elif b.frequencia >= 50 %}badge-warning{% else %}badge-danger{% endif %}">{{ b.frequencia }}%</span></td>
+          <td><span class="badge {% if b.situacao == 'Aprovado' %}badge-success{% elif b.situacao == 'Recuperação' %}badge-warning{% else %}badge-danger{% endif %}">{{ b.situacao }}</span></td>
+        </tr>
+        {% endfor %}
+        {% if not boletim %}
+        <tr><td colspan="6" class="empty-state">Nenhuma nota registrada</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><h2> Minha Frequência por Disciplina</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Disciplina</th><th>Total Aulas</th><th>Presenças</th><th>Faltas</th><th>%</th></tr></thead>
+      <tbody>
+        {% for f in freq_por_disc %}
+        {% set pct = ((f.presencas / f.total) * 100)|round(1) if f.total > 0 else 0 %}
+        <tr>
+          <td><strong>{{ f.disciplina }}</strong></td>
+          <td>{{ f.total }}</td>
+          <td>{{ f.presencas }}</td>
+          <td>{{ f.faltas or 0 }}</td>
+          <td><span class="badge {% if pct >= 75 %}badge-success{% elif pct >= 50 %}badge-warning{% else %}badge-danger{% endif %}">{{ pct }}%</span></td>
+        </tr>
+        {% endfor %}
+        {% if not freq_por_disc %}
+        <tr><td colspan="5" class="empty-state">Nenhuma frequência registrada</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header"><h2> Minhas Provas</h2></div>
+    <div class="table-container">
+      <table>
+        <thead><tr><th>Data</th><th>Disciplina</th><th>Tipo</th><th>Conteúdo</th></tr></thead>
+        <tbody>
+          {% for p in provas %}
+          <tr>
+            <td><strong>{{ p.data }}</strong></td>
+            <td>{{ p.disciplina }}</td>
+            <td><span class="badge {% if p.tipo == 'Prova' %}badge-danger{% elif p.tipo == 'Trabalho' %}badge-warning{% else %}badge-success{% endif %}">{{ p.tipo }}</span></td>
+            <td>{{ p.conteudo or '-' }}</td>
+          </tr>
+          {% endfor %}
+          {% if not provas %}
+          <tr><td colspan="4" class="empty-state">Nenhuma prova agendada</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2> Pendências</h2></div>
+    <div class="table-container">
+      <table>
+        <thead><tr><th>Descrição</th><th>Professor</th><th>Data</th></tr></thead>
+        <tbody>
+          {% for p in pendencias %}
+          <tr>
+            <td>{{ p.descricao }}</td>
+            <td>{{ p.professor }}</td>
+            <td>{{ p.data }}</td>
+          </tr>
+          {% endfor %}
+          {% if not pendencias %}
+          <tr><td colspan="3" class="empty-state">Nenhuma pendência</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><h2> Avisos da Turma</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Título</th><th>Descrição</th><th>Autor</th><th>Data</th></tr></thead>
+      <tbody>
+        {% for a in avisos %}
+        <tr>
+          <td><strong>{{ a.titulo }}</strong></td>
+          <td>{{ a.descricao[:100] }}{% if a.descricao|length > 100 %}...{% endif %}</td>
+          <td><small>{{ a.criado_por }} <span class="badge {% if a.criado_por_funcao == 'professor' %}badge-success{% else %}badge-warning{% endif %}" style="font-size:0.7rem">{{ a.criado_por_funcao }}</span></small></td>
+          <td>{{ a.data }}</td>
+        </tr>
+        {% endfor %}
+        {% if not avisos %}
+        <tr><td colspan="4" class="empty-state">Nenhum aviso</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><h2> Horário da Turma</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Horário</th>{% for d in dias %}<th>{{ d }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% set horarios_unicos = horarios|map(attribute='hora_inicio')|unique|list|sort %}
+        {% for hora in horarios_unicos %}
+        <tr>
+          <td><strong>{{ hora }}</strong></td>
+          {% for d in dias %}
+          <td>
+            {% for h in horarios %}
+              {% if h.dia == d and h.hora_inicio == hora %}
+              <span class="badge badge-primary" style="font-size:0.75rem">{{ h.disciplina }}</span>
+              {% if h.sala %}<br><small>{{ h.sala }}</small>{% endif %}
+              {% endif %}
+            {% endfor %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+        {% if not horarios %}
+        <tr><td colspan="{{ dias|length + 1 }}" class="empty-state">Nenhum horário configurado</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if enquetes %}
+<div class="card">
+  <div class="card-header"><h2> Enquetes da Turma</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Pergunta</th><th>Opções</th><th>Meu Voto</th></tr></thead>
+      <tbody>
+        {% for e in enquetes %}
+        <tr>
+          <td><strong>{{ e.enquete.titulo }}</strong></td>
+          <td>
+            {% for o in e.opcoes %}
+              <div>{{ o }}: {{ e.votos.get(loop.index0, 0) }} votos</div>
+            {% endfor %}
+          </td>
+          <td>
+            {% if e.meu_voto is not none %}
+              <span class="badge badge-success">{{ e.opcoes[e.meu_voto] }}</span>
+            {% else %}
+              <span class="badge badge-warning">Não votou</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header"><h2> Calendário da Turma</h2></div>
+  <div class="table-container">
+    <table>
+      <thead><tr><th>Data</th><th>Tipo</th><th>Evento</th><th>Detalhes</th></tr></thead>
+      <tbody>
+        {% for e in eventos %}
+        <tr>
+          <td><strong>{{ e.data }}</strong></td>
+          <td>
+            {% if e.tipo == 'Prova' %}<span class="badge badge-danger">{{ e.icone }} Prova</span>
+            {% elif e.tipo == 'Aviso' %}<span class="badge badge-primary">{{ e.icone }} Aviso</span>
+            {% elif e.tipo == 'Reunião' %}<span class="badge" style="background:#ede9fe;color:#7c3aed;border:1px solid #7c3aed">{{ e.icone }} Reunião</span>
+            {% else %}<span class="badge badge-warning">{{ e.icone }} {{ e.tipo }}</span>
+            {% endif %}
+          </td>
+          <td>{{ e.titulo }}</td>
+          <td><small>{{ e.detalhes[:80] }}{% if e.detalhes|length > 80 %}...{% endif %}</small></td>
+        </tr>
+        {% endfor %}
+        {% if not eventos %}
+        <tr><td colspan="4" class="empty-state">Nenhum evento na turma</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

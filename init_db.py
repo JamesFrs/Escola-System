@@ -16,14 +16,14 @@ def init_db():
         senha TEXT NOT NULL,
         disciplina TEXT DEFAULT '',
         turmas TEXT DEFAULT '',
-        email_institucional TEXT DEFAULT '',
-        horario_atendimento TEXT DEFAULT '',
+        turnos TEXT DEFAULT 'vespertino',
         bio TEXT DEFAULT ''
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS turmas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nome TEXT UNIQUE NOT NULL
+        nome TEXT UNIQUE NOT NULL,
+        turno TEXT DEFAULT 'vespertino'
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS alunos (
@@ -31,7 +31,9 @@ def init_db():
         codigo TEXT UNIQUE NOT NULL,
         nome TEXT NOT NULL,
         turma TEXT NOT NULL,
-        nascimento TEXT
+        nascimento TEXT,
+        deficiencia TEXT DEFAULT 'nao',
+        desc_deficiencia TEXT DEFAULT ''
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS representantes (
@@ -47,7 +49,8 @@ def init_db():
         codigo_aluno TEXT NOT NULL,
         disciplina TEXT NOT NULL,
         nota REAL DEFAULT 0,
-        UNIQUE(codigo_aluno, disciplina)
+        bimestre INTEGER DEFAULT 1,
+        UNIQUE(codigo_aluno, disciplina, bimestre)
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS frequencia (
@@ -57,6 +60,8 @@ def init_db():
         turma TEXT NOT NULL,
         data TEXT NOT NULL,
         presente INTEGER DEFAULT 1,
+        atestado INTEGER DEFAULT 0,
+        bimestre INTEGER DEFAULT 1,
         UNIQUE(codigo_aluno, disciplina, turma, data)
     )""")
 
@@ -70,6 +75,7 @@ def init_db():
         registrado_por TEXT NOT NULL,
         registrado_por_funcao TEXT NOT NULL,
         status TEXT DEFAULT 'pendente',
+        bimestre INTEGER DEFAULT 1,
         UNIQUE(codigo_aluno, disciplina, turma, data)
     )""")
 
@@ -83,7 +89,8 @@ def init_db():
         observacao TEXT DEFAULT '',
         criado_por TEXT DEFAULT '',
         criado_por_funcao TEXT DEFAULT '',
-        status TEXT DEFAULT 'confirmada'
+        status TEXT DEFAULT 'confirmada',
+        bimestre INTEGER DEFAULT 1
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS pendencias (
@@ -196,10 +203,21 @@ def init_db():
         turma TEXT NOT NULL,
         disciplina TEXT NOT NULL,
         dia TEXT NOT NULL,
+        tempo INTEGER NOT NULL DEFAULT 1,
         hora_inicio TEXT NOT NULL,
         hora_fim TEXT NOT NULL,
+        professor TEXT DEFAULT '',
         sala TEXT DEFAULT '',
         criado_por TEXT DEFAULT ''
+    )""")
+
+    c.execute("""CREATE TABLE IF NOT EXISTS horarios_oficiais (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        turno TEXT NOT NULL DEFAULT 'vespertino',
+        tempo INTEGER NOT NULL,
+        hora_inicio TEXT NOT NULL,
+        hora_fim TEXT NOT NULL,
+        UNIQUE(turno, tempo)
     )""")
 
     # Seed professor
@@ -212,7 +230,148 @@ def init_db():
     # Seed turmas
     default_turmas = ['1º Ano A', '1º Ano B', '2º Ano A', '2º Ano B', '3º Ano A', '3º Ano B']
     for t in default_turmas:
-        c.execute("INSERT OR IGNORE INTO turmas (nome) VALUES (?)", (t,))
+        c.execute("INSERT OR IGNORE INTO turmas (nome, turno) VALUES (?, 'vespertino')", (t,))
+
+    # Seed horarios oficiais - Turno Vespertino
+    horarios_oficiais = [
+        (1, '13:00', '13:48'),
+        (2, '13:48', '14:36'),
+        (3, '14:36', '15:24'),
+        (4, '15:39', '16:27'),
+        (5, '16:27', '17:15'),
+    ]
+    for tempo, inicio, fim in horarios_oficiais:
+        c.execute("INSERT OR IGNORE INTO horarios_oficiais (turno, tempo, hora_inicio, hora_fim) VALUES (?, ?, ?, ?)",
+                  ('vespertino', tempo, inicio, fim))
+
+    # Seed alunos (3 por turma: 1 rep, 1 vice, 1 normal)
+    alunos_seed = {
+        '1º Ano A': [
+            ('20260101', 'Ana Beatriz Silva'),
+            ('20260102', 'Carlos Eduardo Santos'),
+            ('20260103', 'Maria Fernanda Lima'),
+        ],
+        '1º Ano B': [
+            ('20260104', 'Pedro Henrique Oliveira'),
+            ('20260105', 'Juliana Costa Souza'),
+            ('20260106', 'Lucas Almeida Pereira'),
+        ],
+        '2º Ano A': [
+            ('20260201', 'Fernanda Rodrigues'),
+            ('20260202', 'Rafael Mendes Silva'),
+            ('20260203', 'Camila Santos Lima'),
+        ],
+        '2º Ano B': [
+            ('20260204', 'Gabriel Ferreira Costa'),
+            ('20260205', 'Isabela Martins'),
+            ('20260206', 'Thiago Ribeiro Alves'),
+        ],
+        '3º Ano A': [
+            ('20260301', 'Bruno Costa Lima'),
+            ('20260302', 'Maria Souza Pereira'),
+            ('20260303', 'James Farias'),
+        ],
+        '3º Ano B': [
+            ('20260304', 'Ricardo Santos'),
+            ('20260305', 'Ana Clara Oliveira'),
+            ('20260306', 'Gustavo Lima'),
+        ],
+    }
+    for turma, alunos in alunos_seed.items():
+        for codigo, nome in alunos:
+            exists = c.execute("SELECT id FROM alunos WHERE codigo=?", (codigo,)).fetchone()
+            if not exists:
+                c.execute("INSERT INTO alunos (codigo, nome, turma, nascimento, deficiencia, desc_deficiencia) VALUES (?, ?, ?, '', 'nao', '')",
+                          (codigo, nome, turma))
+
+    # Seed representantes (1 rep + 1 vice por turma)
+    for turma in default_turmas:
+        rep = c.execute("SELECT id FROM representantes WHERE turma=? AND funcao='representante'", (turma,)).fetchone()
+        if not rep:
+            aluno = c.execute("SELECT codigo FROM alunos WHERE turma=? ORDER BY nome LIMIT 1", (turma,)).fetchone()
+            if aluno:
+                c.execute("INSERT OR IGNORE INTO representantes (turma, codigo_aluno, funcao) VALUES (?, ?, 'representante')",
+                          (turma, aluno[0]))
+        vice = c.execute("SELECT id FROM representantes WHERE turma=? AND funcao='vice'", (turma,)).fetchone()
+        if not vice:
+            aluno = c.execute("SELECT codigo FROM alunos WHERE turma=? AND codigo NOT IN (SELECT codigo_aluno FROM representantes WHERE turma=?) ORDER BY nome LIMIT 1",
+                              (turma, turma)).fetchone()
+            if aluno:
+                c.execute("INSERT OR IGNORE INTO representantes (turma, codigo_aluno, funcao) VALUES (?, ?, 'vice')",
+                          (turma, aluno[0]))
+
+    # Seed professores (1 por disciplina)
+    professores_seed = [
+        ('Ricardo Almeida', 'ricardo@escola.com', 'Matemática', '1º Ano A, 2º Ano A, 3º Ano A', 'matutino,vespertino'),
+        ('Mariana Costa', 'mariana@escola.com', 'Português', '1º Ano B, 2º Ano B, 3º Ano B', 'matutino,vespertino'),
+        ('Fernando Oliveira', 'fernando@escola.com', 'História', '1º Ano A, 1º Ano B, 3º Ano A', 'vespertino'),
+        ('Patrícia Santos', 'patricia@escola.com', 'Geografia', '2º Ano A, 2º Ano B, 3º Ano B', 'vespertino'),
+        ('Carlos Mendes', 'carlos@escola.com', 'Ciências', '1º Ano A, 2º Ano A, 3º Ano A', 'matutino,vespertino'),
+        ('Luciana Ferreira', 'luciana@escola.com', 'Inglês', '1º Ano B, 2º Ano B, 3º Ano B', 'vespertino'),
+        ('Roberto Lima', 'roberto@escola.com', 'Educação Física', '1º Ano A, 1º Ano B, 2º Ano A, 2º Ano B, 3º Ano A, 3º Ano B', 'matutino,vespertino'),
+        ('Ana Paula Ribeiro', 'anapaula@escola.com', 'Artes', '1º Ano A, 1º Ano B, 2º Ano A, 2º Ano B, 3º Ano A, 3º Ano B', 'vespertino'),
+    ]
+    for nome, email, disc, turmas_prof, turnos in professores_seed:
+        exists = c.execute("SELECT id FROM professores WHERE email=?", (email,)).fetchone()
+        if not exists:
+            c.execute("INSERT INTO professores (nome, email, senha, disciplina, turmas, turnos, bio) VALUES (?, ?, ?, ?, ?, ?, '')",
+                      (nome, email, generate_password_hash('123456'), disc, turmas_prof, turnos))
+
+    # Adicionar coluna bimestre na tabela notas se nao existir
+    try:
+        c.execute("PRAGMA table_info(notas)")
+        cols = [col[1] for col in c.fetchall()]
+        if 'bimestre' not in cols:
+            c.execute("ALTER TABLE notas ADD COLUMN bimestre INTEGER DEFAULT 1")
+    except:
+        pass
+
+    # Adicionar coluna bimestre na tabela frequencia se nao existir
+    try:
+        c.execute("PRAGMA table_info(frequencia)")
+        cols = [col[1] for col in c.fetchall()]
+        if 'bimestre' not in cols:
+            c.execute("ALTER TABLE frequencia ADD COLUMN bimestre INTEGER DEFAULT 1")
+    except:
+        pass
+
+    # Adicionar coluna bimestre na tabela provas se nao existir
+    try:
+        c.execute("PRAGMA table_info(provas)")
+        cols = [col[1] for col in c.fetchall()]
+        if 'bimestre' not in cols:
+            c.execute("ALTER TABLE provas ADD COLUMN bimestre INTEGER DEFAULT 1")
+    except:
+        pass
+
+    # Adicionar colunas deficiencia na tabela alunos se nao existirem
+    try:
+        c.execute("PRAGMA table_info(alunos)")
+        cols = [col[1] for col in c.fetchall()]
+        if 'deficiencia' not in cols:
+            c.execute("ALTER TABLE alunos ADD COLUMN deficiencia TEXT DEFAULT 'nao'")
+        if 'desc_deficiencia' not in cols:
+            c.execute("ALTER TABLE alunos ADD COLUMN desc_deficiencia TEXT DEFAULT ''")
+    except:
+        pass
+
+    # Adicionar coluna turnos na tabela professores se nao existir
+    try:
+        c.execute("PRAGMA table_info(professores)")
+        cols = [col[1] for col in c.fetchall()]
+        if 'turnos' not in cols:
+            c.execute("ALTER TABLE professores ADD COLUMN turnos TEXT DEFAULT 'vespertino'")
+    except:
+        pass
+
+    # Adicionar coluna status na tabela frequencia_pendente se nao existir
+    try:
+        c.execute("PRAGMA table_info(frequencia_pendente)")
+        cols = [col[1] for col in c.fetchall()]
+        if 'bimestre' not in cols:
+            c.execute("ALTER TABLE frequencia_pendente ADD COLUMN bimestre INTEGER DEFAULT 1")
+    except:
+        pass
 
     conn.commit()
     conn.close()

@@ -1,58 +1,86 @@
 {% extends "base.html" %}
-{% block title %}Turmas — Sistema Escolar (beta){% endblock %}
-{% block page_title %}🏫 Turmas{% endblock %}
+{% block title %}Turmas{% endblock %}
+{% block page_title %}Turmas{% endblock %}
 {% block content %}
+
 <div class="card" style="margin-bottom:20px">
   <div class="card-header"><h2>Criar Nova Turma</h2></div>
-  <form method="POST" action="{{ url_for('turma_nova') }}" style="max-width:400px;display:flex;gap:12px;align-items:end;padding:16px 20px">
-    <div class="form-group" style="flex:1;margin:0">
+  <form method="POST" action="{{ url_for('turma_nova') }}" style="display:flex;gap:12px;align-items:end;padding:16px 20px;flex-wrap:wrap">
+    <div class="form-group" style="flex:1;min-width:150px;margin:0">
       <label>Nome da Turma</label>
-      <input type="text" name="nome" placeholder="Ex: 4º Ano A" required>
+      <input type="text" name="nome" placeholder="Ex: 4 Ano A" required>
     </div>
-    <button type="submit" class="btn btn-success">+ Criar</button>
+    <div class="form-group" style="min-width:150px;margin:0">
+      <label>Turno</label>
+      <select name="turno">
+        <option value="matutino">Matutino</option>
+        <option value="vespertino" selected>Vespertino</option>
+        <option value="noturno">Noturno</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-success">Criar</button>
   </form>
+</div>
+
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>Filtrar por Turno</h2></div>
+  <div style="padding:16px 20px;display:flex;gap:8px;flex-wrap:wrap">
+    <a href="{{ url_for('turmas_lista') }}" class="btn btn-sm {% if not turno_filtro %}btn-primary{% else %}btn-outline{% endif %}">Todas</a>
+    <a href="{{ url_for('turmas_lista', turno='matutino') }}" class="btn btn-sm {% if turno_filtro == 'matutino' %}btn-primary{% else %}btn-outline{% endif %}">Matutino</a>
+    <a href="{{ url_for('turmas_lista', turno='vespertino') }}" class="btn btn-sm {% if turno_filtro == 'vespertino' %}btn-primary{% else %}btn-outline{% endif %}">Vespertino</a>
+    <a href="{{ url_for('turmas_lista', turno='noturno') }}" class="btn btn-sm {% if turno_filtro == 'noturno' %}btn-primary{% else %}btn-outline{% endif %}">Noturno</a>
+  </div>
 </div>
 
 <div class="card">
   <div class="card-header"><h2>Turmas Existentes</h2></div>
   <div class="table-container">
     <table>
-      <thead><tr><th>Turma</th><th>Alunos</th><th>Rep.</th><th>Ações</th></tr></thead>
+      <thead><tr><th>Turma</th><th>Turno</th><th>Alunos</th><th>Rep.</th><th>Acoes</th></tr></thead>
       <tbody>
         {% for t in turmas %}
         <tr>
           <td><strong>{{ t.nome }}</strong></td>
-          <td><span class="badge badge-primary">{{ t.total_alunos }} alunos</span></td>
+          <td><span class="badge badge-primary">{{ t.turno|capitalize }}</span></td>
+          <td><span class="badge badge-success">{{ t.total_alunos }} alunos</span></td>
           <td>
             {% if t.representante %}
-              <span class="badge badge-success">{{ t.representante }} ({{ t.funcao_rep }})</span>
+              <span class="badge badge-warning">{{ t.representante }} ({{ t.funcao_rep }})</span>
             {% else %}
-              <span style="color:var(--text-muted)">—</span>
+              <span style="color:var(--text-secondary)">—</span>
             {% endif %}
           </td>
           <td class="actions">
-            <a href="{{ url_for('turma_alunos', id=t.id) }}" class="btn btn-sm btn-primary">👨‍🎓 Gerenciar</a>
-            <a href="{{ url_for('turma_representantes', id=t.id) }}" class="btn btn-sm btn-outline">👥 Rep.</a>
-            <button class="btn btn-sm btn-outline" onclick="editarTurma({{ t.id }}, '{{ t.nome }}')">✏️ Editar</button>
-            <a href="{{ url_for('turma_excluir', id=t.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir a turma {{ t.nome }}? Alunos não serão excluídos.')" style="color:var(--danger)">🗑️</a>
+            <a href="{{ url_for('turma_alunos', id=t.id) }}" class="btn btn-sm btn-primary">Gerenciar</a>
+            <a href="{{ url_for('turma_representantes', id=t.id) }}" class="btn btn-sm btn-outline">Rep.</a>
+            <button class="btn btn-sm btn-outline" onclick="editarTurma({{ t.id }}, '{{ t.nome }}', '{{ t.turno }}')">Editar</button>
+            <a href="{{ url_for('turma_excluir', id=t.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir a turma {{ t.nome }}?')" style="color:var(--danger)">Excluir</a>
           </td>
         </tr>
         {% endfor %}
         {% if not turmas %}
-        <tr><td colspan="4" class="empty-state">Nenhuma turma cadastrada</td></tr>
+        <tr><td colspan="5" class="empty-state">Nenhuma turma cadastrada</td></tr>
         {% endif %}
       </tbody>
     </table>
   </div>
 </div>
 
-<div id="modalEditar" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;display:none;align-items:center;justify-content:center">
-  <div style="background:var(--bg-card);border-radius:16px;padding:24px;width:400px;box-shadow:var(--shadow-lg)">
-    <h3 style="margin-bottom:16px">✏️ Editar Turma</h3>
+<div id="modalEditar" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--bg-card);border-radius:12px;padding:24px;width:400px;border:1px solid var(--border)">
+    <h3 style="margin-bottom:16px">Editar Turma</h3>
     <form method="POST" id="formEditar">
       <div class="form-group">
         <label>Nome</label>
         <input type="text" name="nome" id="inputEditar" required>
+      </div>
+      <div class="form-group">
+        <label>Turno</label>
+        <select name="turno" id="inputTurno">
+          <option value="matutino">Matutino</option>
+          <option value="vespertino">Vespertino</option>
+          <option value="noturno">Noturno</option>
+        </select>
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end">
         <button type="button" class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
@@ -63,9 +91,10 @@
 </div>
 
 <script>
-function editarTurma(id, nome) {
+function editarTurma(id, nome, turno) {
   document.getElementById('formEditar').action = '/turmas/editar/' + id;
   document.getElementById('inputEditar').value = nome;
+  document.getElementById('inputTurno').value = turno;
   document.getElementById('modalEditar').style.display = 'flex';
 }
 function fecharModal() {

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Pendências — Sistema Escolar (beta){% endblock %}
-{% block page_title %}⚠️ Pendências{% endblock %}
+{% block page_title %} Pendências{% endblock %}
 {% block content %}
 <div class="card" style="margin-bottom:20px">
   <div class="card-header"><h2>Registrar Pendência</h2></div>
@@ -29,7 +29,7 @@
           <td>{{ p.descricao }}</td>
           <td>{{ p.professor }}</td>
           <td>{{ p.data }}</td>
-          <td><a href="{{ url_for('pendencia_excluir', id=p.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Remover esta pendência?')">🗑️</a></td>
+          <td><a href="{{ url_for('pendencia_excluir', id=p.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Remover esta pendência?')"></a></td>
         </tr>
         {% endfor %}
         {% if not pendencias %}

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Grade Semanal — Sistema Escolar (beta){% endblock %}
-{% block page_title %} Grade Semanal — {{ turma_sel }}{% endblock %}
-{% block content %}
+{% block title %}Grade Semanal — Representante{% endblock %}
+{% block page_title_rep %} Grade Semanal — {{ turma }}{% endblock %}
+{% block content_rep %}
 <style>
 .grade-grid { display: grid; grid-template-columns: 100px repeat(5, 1fr); border: 2px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 .grade-header { background: var(--primary); color: #fff; padding: 12px 8px; text-align: center; font-size: 13px; font-weight: 700; }
@@ -11,34 +11,19 @@
 .grade-cell select, .grade-cell input { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; margin-bottom: 4px; background: var(--bg); color: var(--text); }
 .grade-cell select:focus, .grade-cell input:focus { outline: none; border-color: var(--primary); }
 .grade-cell label { font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px; }
-.grade-fixo { background: var(--success-light); padding: 6px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; color: var(--success-dark); border: 1px solid var(--success); margin-bottom: 4px; }
-.grade-fixo .prof-label { color: var(--text-secondary); font-weight: 400; }
-.grade-seletor { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
-.grade-seletor label { font-weight: 600; font-size: 14px; }
-.grade-seletor select { padding: 10px 14px; border: 2px solid var(--border); border-radius: 12px; font-size: 15px; }
 .intervalo-row { background: var(--warning-light); border: 2px solid var(--warning); }
 .intervalo-row .grade-header { background: var(--warning); }
 @media (max-width: 768px) {
   .grade-grid { grid-template-columns: 70px repeat(5, 1fr); }
   .grade-cell { padding: 4px; min-height: 70px; }
   .grade-cell select, .grade-cell input { font-size: 10px; padding: 4px; }
-  .grade-tempo { font-size: 11px; padding: 6px 4px; }
 }
 </style>
 
-<div class="grade-seletor">
-  <label>Turma:</label>
-  <form method="GET" style="display:flex;gap:8px">
-    <select name="turma" onchange="this.form.submit()">
-      {% for t in turmas %}
-      <option {% if t == turma_sel %}selected{% endif %}>{{ t }}</option>
-      {% endfor %}
-    </select>
-  </form>
-</div>
+<h2 style="margin-bottom:8px">Grade Semanal — {{ turma }}</h2>
+<p style="color:var(--text-secondary);margin-bottom:20px">Turno Vespertino — Editar grade da sua turma</p>
 
 <form method="POST">
-  <input type="hidden" name="turma" value="{{ turma_sel }}">
   <div class="grade-grid">
     <div class="grade-header">Horário</div>
     {% for dia in dias %}
@@ -80,13 +65,12 @@
 
   <div style="margin-top:20px;display:flex;gap:12px">
     <button type="submit" class="btn btn-primary"> Salvar Grade</button>
-    <a href="{{ url_for('horarios', turma=turma_sel) }}" class="btn btn-outline"> Recarregar</a>
+    <a href="{{ url_for('rep_horarios') }}" class="btn btn-outline"> Recarregar</a>
   </div>
 </form>
 
-{% if turma_sel %}
 <div class="card" style="margin-top:24px">
-  <div class="card-header"><h2> Visualização da Grade — {{ turma_sel }}</h2></div>
+  <div class="card-header"><h2> Visualização da Grade — {{ turma }}</h2></div>
   <div class="table-container">
     <table>
       <thead>
@@ -121,5 +105,4 @@
     </table>
   </div>
 </div>
-{% endif %}
 {% endblock %}

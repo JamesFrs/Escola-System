@@ -1,29 +1,63 @@
 {% extends "base.html" %}
-{% block title %}Alunos — Sistema Escolar (beta){% endblock %}
-{% block page_title %}👨‍🎓 Alunos{% endblock %}
+{% block title %}Alunos{% endblock %}
+{% block page_title %}Alunos{% endblock %}
 {% block content %}
-<div class="card-header" style="margin-bottom:20px">
-  <form class="search-bar" method="GET" action="{{ url_for('alunos') }}">
-    <input type="text" name="q" value="{{ busca }}" placeholder="Buscar por nome, código ou turma...">
-    <button type="submit" class="btn btn-outline">🔍 Buscar</button>
+
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><h2>Filtros</h2></div>
+  <form method="GET" style="padding:16px 20px;display:flex;gap:16px;flex-wrap:wrap;align-items:end">
+    <div class="form-group" style="margin:0;min-width:150px">
+      <label>Turno</label>
+      <select name="turno" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        <option value="matutino" {% if turno_sel == 'matutino' %}selected{% endif %}>Matutino</option>
+        <option value="vespertino" {% if turno_sel == 'vespertino' %}selected{% endif %}>Vespertino</option>
+        <option value="noturno" {% if turno_sel == 'noturno' %}selected{% endif %}>Noturno</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin:0;min-width:200px">
+      <label>Turma</label>
+      <select name="turma" onchange="this.form.submit()">
+        <option value="">Todas</option>
+        {% for t in turmas_filtradas %}
+        <option {% if t == turma_sel %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="margin:0;flex:1;min-width:200px">
+      <label>Buscar</label>
+      <input type="text" name="q" value="{{ busca }}" placeholder="Nome ou codigo...">
+    </div>
+    <button type="submit" class="btn btn-outline">Filtrar</button>
   </form>
-  <a href="{{ url_for('aluno_novo') }}" class="btn btn-success">+ Novo Aluno</a>
 </div>
+
 <div class="card">
+  <div class="card-header" style="justify-content:space-between">
+    <h2>{{ alunos|length }} aluno(s) encontrado(s)</h2>
+    <a href="{{ url_for('aluno_novo') }}" class="btn btn-success">+ Novo Aluno</a>
+  </div>
   <div class="table-container">
     <table>
-      <thead><tr><th>Código</th><th>Nome</th><th>Turma</th><th>Nascimento</th><th>Ações</th></tr></thead>
+      <thead><tr><th>Codigo</th><th>Nome</th><th>Turma</th><th>Nascimento</th><th>Acoes</th></tr></thead>
       <tbody>
         {% for a in alunos %}
         <tr>
           <td><strong>{{ a.codigo }}</strong></td>
-          <td>{{ a.nome }}</td>
+          <td>
+            {{ a.nome }}
+            {% if a.funcao_rep == 'representante' %}
+              <span class="badge badge-success">Rep. {{ a.turma }}</span>
+            {% elif a.funcao_rep == 'vice' %}
+              <span class="badge badge-warning">Vice-R {{ a.turma }}</span>
+            {% endif %}
+          </td>
           <td><span class="badge badge-primary">{{ a.turma }}</span></td>
           <td>{{ a.nascimento or '-' }}</td>
           <td class="actions">
-            <a href="{{ url_for('aluno_perfil', id=a.id) }}" title="Perfil">👁️</a>
-            <a href="{{ url_for('aluno_editar', id=a.id) }}" title="Editar">✏️</a>
-            <a href="{{ url_for('aluno_excluir', id=a.id) }}" title="Excluir" onclick="return confirm('Tem certeza?')">🗑️</a>
+            <a href="{{ url_for('aluno_perfil', id=a.id) }}" title="Perfil"></a>
+            <a href="{{ url_for('aluno_editar', id=a.id) }}" title="Editar"></a>
+            <a href="{{ url_for('aluno_excluir', id=a.id) }}" title="Excluir" onclick="return confirm('Tem certeza?')"></a>
           </td>
         </tr>
         {% endfor %}

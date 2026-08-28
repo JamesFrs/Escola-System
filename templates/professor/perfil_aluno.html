@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Perfil — {{ aluno.nome }}{% endblock %}
-{% block page_title %}👁️ Perfil do Aluno{% endblock %}
+{% block page_title %} Perfil do Aluno{% endblock %}
 {% block content %}
 <div class="card-header" style="margin-bottom:20px">
   <a href="{{ url_for('alunos') }}" class="btn btn-outline">← Voltar</a>
-  <a href="{{ url_for('boletim', codigo=aluno.codigo) }}" class="btn btn-primary">📄 Boletim</a>
-  <a href="{{ url_for('frequencia_historico', codigo=aluno.codigo) }}" class="btn btn-primary">📋 Frequência</a>
+  <a href="{{ url_for('boletim', codigo=aluno.codigo) }}" class="btn btn-primary"> Boletim</a>
+  <a href="{{ url_for('frequencia_historico', codigo=aluno.codigo) }}" class="btn btn-primary"> Frequência</a>
 </div>
 
 <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
@@ -19,7 +19,7 @@
 
 <div class="grid-2">
   <div class="card">
-    <div class="card-header"><h2>📝 Notas</h2></div>
+    <div class="card-header"><h2> Notas</h2></div>
     <div class="table-container">
       <table>
         <thead><tr><th>Disciplina</th><th>Nota</th><th>Situação</th></tr></thead>
@@ -43,7 +43,7 @@
   </div>
 
   <div class="card">
-    <div class="card-header"><h2>✅ Frequência por Disciplina</h2></div>
+    <div class="card-header"><h2> Frequência por Disciplina</h2></div>
     <div class="table-container">
       <table>
         <thead><tr><th>Disciplina</th><th>Aulas</th><th>Faltas</th><th>%</th></tr></thead>
@@ -75,7 +75,7 @@
 
 <div class="grid-2" style="margin-top:20px">
   <div class="card">
-    <div class="card-header"><h2>⚠️ Pendências</h2></div>
+    <div class="card-header"><h2> Pendências</h2></div>
     <div class="table-container">
       <table>
         <thead><tr><th>Descrição</th><th>Professor</th><th>Data</th></tr></thead>
@@ -94,7 +94,7 @@
   </div>
 
   <div class="card">
-    <div class="card-header"><h2>📅 Próximas Provas</h2></div>
+    <div class="card-header"><h2> Próximas Provas</h2></div>
     <div class="table-container">
       <table>
         <thead><tr><th>Data</th><th>Disciplina</th><th>Tipo</th></tr></thead>
@@ -115,7 +115,7 @@
 
 {% if avisos %}
 <div class="card" style="margin-top:20px">
-  <div class="card-header"><h2>📢 Avisos da Turma</h2></div>
+  <div class="card-header"><h2> Avisos da Turma</h2></div>
   {% for a in avisos %}
   <div style="padding:16px;border-bottom:1px solid var(--border)">
     <strong>{{ a.titulo }}</strong> — <span style="color:var(--text-secondary)">{{ a.data }}</span>

@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 {% block title %}Dashboard — Sistema Escolar (beta){% endblock %}
-{% block page_title %}📊 Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 {% block content %}
 <div class="stats-grid">
-  <div class="stat-card"><div class="stat-icon blue">👨‍🎓</div><div class="stat-info"><h3>{{ total_alunos }}</h3><p>Total de Alunos</p></div></div>
-  <div class="stat-card"><div class="stat-icon purple">🏫</div><div class="stat-info"><h3>{{ total_turmas }}</h3><p>Turmas</p></div></div>
-  <div class="stat-card"><div class="stat-icon orange">📅</div><div class="stat-info"><h3>{{ provas_semana }}</h3><p>Provas da Semana</p></div></div>
-  <div class="stat-card"><div class="stat-icon red">⚠️</div><div class="stat-info"><h3>{{ pendencias_abertas }}</h3><p>Pendências Abertas</p></div></div>
-  <div class="stat-card"><div class="stat-icon green">📊</div><div class="stat-info"><h3>{{ media_geral }}</h3><p>Média Geral da Escola</p></div></div>
-  <div class="stat-card"><div class="stat-icon cyan">✅</div><div class="stat-info"><h3>{{ freq_media }}%</h3><p>Frequência Média</p></div></div>
-  <div class="stat-card"><div class="stat-icon orange">⏳</div><div class="stat-info"><h3>{{ freq_pendente }}</h3><p>Frequência Pendente</p></div></div>
-  <div class="stat-card"><div class="stat-icon purple">📝</div><div class="stat-info"><h3>{{ provas_pendentes }}</h3><p>Provas Pendentes</p></div></div>
+  <div class="stat-card blue"><div class="stat-info"><h3>{{ total_alunos }}</h3><p>Total de Alunos</p></div></div>
+  <div class="stat-card purple"><div class="stat-info"><h3>{{ total_turmas }}</h3><p>Turmas</p></div></div>
+  <div class="stat-card orange"><div class="stat-info"><h3>{{ provas_semana }}</h3><p>Provas da Semana</p></div></div>
+  <div class="stat-card red"><div class="stat-info"><h3>{{ pendencias_abertas }}</h3><p>Pendencias Abertas</p></div></div>
+  <div class="stat-card green"><div class="stat-info"><h3>{{ media_geral }}</h3><p>Media Geral da Escola</p></div></div>
+  <div class="stat-card cyan"><div class="stat-info"><h3>{{ freq_media }}%</h3><p>Frequencia Media</p></div></div>
+  <div class="stat-card orange"><div class="stat-info"><h3>{{ freq_pendente }}</h3><p>Frequencia Pendente</p></div></div>
+  <div class="stat-card purple"><div class="stat-info"><h3>{{ provas_pendentes }}</h3><p>Provas Pendentes</p></div></div>
 </div>
 
 <div class="card" style="margin-bottom:20px">
-  <div class="card-header"><h2>📋 Atividades dos Representantes</h2></div>
+  <div class="card-header"><h2> Atividades dos Representantes</h2></div>
   <div class="table-container">
     <table>
       <thead><tr><th>Representante</th><th>Turma</th><th>Ação</th><th>Data</th></tr></thead>
@@ -37,11 +37,11 @@
 
 <div class="grid-2">
   <div class="card">
-    <div class="card-header"><h2>📊 Faltas por Disciplina</h2></div>
+    <div class="card-header"><h2> Faltas por Disciplina</h2></div>
     <div class="chart-container"><canvas id="chartFreq"></canvas></div>
   </div>
   <div class="card">
-    <div class="card-header"><h2>📈 Notas por Disciplina</h2></div>
+    <div class="card-header"><h2> Notas por Disciplina</h2></div>
     <div class="chart-container"><canvas id="chartNotas"></canvas></div>
   </div>
 </div>

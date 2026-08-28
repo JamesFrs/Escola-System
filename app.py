@@ -38,9 +38,77 @@ def is_representante(codigo):
     return query_db("SELECT * FROM representantes WHERE codigo_aluno=?", [codigo], one=True)
 
 
+def build_calendar(mes, ano, turmas=None):
+    import calendar
+    from datetime import date
+
+    cal = calendar.Calendar()
+    mes_days = cal.monthdayscalendar(ano, mes)
+    hoje = date.today()
+    nome_mes_pt = {1:'Janeiro',2:'Fevereiro',3:'Março',4:'Abril',5:'Maio',6:'Junho',
+                   7:'Julho',8:'Agosto',9:'Setembro',10:'Outubro',11:'Novembro',12:'Dezembro'}
+    nome_mes = nome_mes_pt.get(mes, '')
+
+    if mes == 1:
+        mes_anterior = (12, ano - 1)
+    else:
+        mes_anterior = (mes - 1, ano)
+    if mes == 12:
+        mes_proximo = (1, ano + 1)
+    else:
+        mes_proximo = (mes + 1, ano)
+
+    eventos_raw = []
+    if turmas:
+        placeholders = ','.join('?' * len(turmas))
+        provas = query_db(f"SELECT *, 'prova' as origem FROM provas WHERE turma IN ({placeholders}) AND status IN ('confirmada','pendente') ORDER BY data", turmas)
+        for p in provas:
+            tipo = p['tipo'] if p['tipo'] else 'Prova'
+            eventos_raw.append({'data': p['data'], 'titulo': tipo + ' — ' + p['disciplina'], 'turma': p['turma'], 'autor': p['criado_por'] or 'Sistema', 'horario': '', 'classe': 'prova' if 'Prova' in tipo else 'trabalho'})
+        reunioes = query_db(f"SELECT * FROM reunioes WHERE turma IN ({placeholders}) ORDER BY data", turmas)
+        for r in reunioes:
+            eventos_raw.append({'data': r['data'], 'titulo': r['assunto'], 'turma': r['turma'], 'autor': (r['criado_por'] if r['criado_por'] else '') or 'Representante', 'horario': '', 'classe': 'reuniao'})
+        avisos = query_db(f"SELECT * FROM avisos WHERE turma IN ({placeholders}) AND data IS NOT NULL AND data != '' ORDER BY data", turmas)
+        for a in avisos:
+            eventos_raw.append({'data': a['data'], 'titulo': a['titulo'], 'turma': a['turma'], 'autor': (a['criado_por'] if a['criado_por'] else '') or 'Sistema', 'horario': '', 'classe': 'aviso'})
+        agenda = query_db(f"SELECT * FROM agenda WHERE turma IN ({placeholders}) ORDER BY data", turmas)
+        for ag in agenda:
+            tipo = (ag['tipo'] if ag['tipo'] else '') or 'Evento'
+            eventos_raw.append({'data': ag['data'], 'titulo': ag['titulo'], 'turma': ag['turma'], 'autor': 'Escola', 'horario': '', 'classe': 'agenda' if tipo == 'Evento' else 'escola'})
+
+    eventos_por_dia = {}
+    for ev in eventos_raw:
+        try:
+            d = date.fromisoformat(ev['data'])
+            if d.month == mes and d.year == ano:
+                key = d.day
+                if key not in eventos_por_dia:
+                    eventos_por_dia[key] = []
+                eventos_por_dia[key].append(ev)
+        except:
+            pass
+
+    calendario = []
+    for semana in mes_days:
+        for dia_num in semana:
+            if dia_num == 0:
+                calendario.append({'dia': '', 'fuera': True, 'hoje': False, 'eventos': []})
+            else:
+                d = date(ano, mes, dia_num)
+                eventos = eventos_por_dia.get(dia_num, [])
+                calendario.append({'dia': dia_num, 'fuera': False, 'hoje': d == hoje, 'eventos': eventos})
+
+    return {
+        'calendario': calendario,
+        'dias_semana': ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+        'mes': mes, 'ano': ano, 'nome_mes': nome_mes,
+        'mes_anterior': mes_anterior, 'mes_proximo': mes_proximo,
+    }
+
+
 @app.before_request
 def before_request():
-    if request.endpoint in ('login', 'login_professor', 'login_aluno', 'static_file', 'api_buscar'):
+    if request.endpoint in ('login', 'login_professor', 'login_aluno', 'static', 'api_buscar'):
         return
     if 'user_type' not in session:
         return redirect(url_for('login'))
@@ -57,6 +125,76 @@ def index():
         else:
             return redirect(url_for('portal_aluno'))
     return redirect(url_for('login'))
+
+
+@app.route('/calendario-mensal')
+def calendario_mensal():
+    if session.get('user_type') != 'professor':
+        return redirect(url_for('login'))
+    from datetime import date as dt
+    mes = request.args.get('mes', dt.today().month, type=int)
+    ano = request.args.get('ano', dt.today().year, type=int)
+    turma_filtro = request.args.get('turma', '')
+    filtro = request.args.get('filtro', '')
+
+    turmas_db = get_turmas()
+
+    if turma_filtro:
+        turmas = [turma_filtro]
+        titulo = f'Calendário — {turma_filtro}'
+    elif filtro == 'minhas':
+        disc = query_db("SELECT disciplina FROM professores WHERE email=?", [session['user_email']], one=True)
+        if disc:
+            turmas_com_disc = query_db("SELECT DISTINCT turma FROM notas WHERE disciplina=?", [disc['disciplina']])
+            turmas = [t['turma'] for t in turmas_com_disc] if turmas_com_disc else turmas_db
+        else:
+            turmas = turmas_db
+        titulo = 'Calendário — Minhas Disciplinas'
+    else:
+        turmas = turmas_db
+        titulo = 'Calendário Geral'
+
+    cal = build_calendar(mes, ano, turmas)
+    cal['titulo_pagina'] = titulo
+    cal['turma_filtro'] = turma_filtro
+    cal['filtro'] = filtro
+    cal['filtros_disponiveis'] = turmas_db + ['minhas']
+    return render_template('shared/calendario_mensal.html', **cal)
+
+
+@app.route('/representante/calendario-mensal')
+def rep_calendario_mensal():
+    if session.get('user_type') != 'representante':
+        return redirect(url_for('login'))
+    from datetime import date as dt
+    mes = request.args.get('mes', dt.today().month, type=int)
+    ano = request.args.get('ano', dt.today().year, type=int)
+    turma = session['user_turma']
+
+    cal = build_calendar(mes, ano, [turma])
+    cal['titulo_pagina'] = f'Calendário — {turma}'
+    cal['turma_filtro'] = ''
+    cal['filtro'] = ''
+    cal['filtros_disponiveis'] = []
+    return render_template('shared/calendario_mensal.html', **cal)
+
+
+@app.route('/portal/calendario-mensal')
+def portal_calendario_mensal():
+    if session.get('user_type') != 'aluno':
+        return redirect(url_for('login'))
+    from datetime import date as dt
+    mes = request.args.get('mes', dt.today().month, type=int)
+    ano = request.args.get('ano', dt.today().year, type=int)
+    aluno = query_db("SELECT * FROM alunos WHERE codigo=?", [session['user_codigo']], one=True)
+    turma = aluno['turma'] if aluno else ''
+
+    cal = build_calendar(mes, ano, [turma])
+    cal['titulo_pagina'] = f'Calendário — {turma}'
+    cal['turma_filtro'] = ''
+    cal['filtro'] = ''
+    cal['filtros_disponiveis'] = []
+    return render_template('shared/calendario_mensal.html', **cal)
 
 
 @app.route('/login')
@@ -171,7 +309,11 @@ def dashboard():
 def turmas_lista():
     if session.get('user_type') != 'professor':
         return redirect(url_for('login'))
-    turmas_raw = query_db("SELECT * FROM turmas ORDER BY nome")
+    turno_filtro = request.args.get('turno', '')
+    if turno_filtro:
+        turmas_raw = query_db("SELECT * FROM turmas WHERE turno=? ORDER BY nome", [turno_filtro])
+    else:
+        turmas_raw = query_db("SELECT * FROM turmas ORDER BY nome")
     turmas = []
     for t in turmas_raw:
         td = dict(t)
@@ -180,7 +322,7 @@ def turmas_lista():
         td['representante'] = rep['codigo_aluno'] if rep else None
         td['funcao_rep'] = rep['funcao'] if rep else None
         turmas.append(td)
-    return render_template('professor/turmas.html', turmas=turmas)
+    return render_template('professor/turmas.html', turmas=turmas, turno_filtro=turno_filtro)
 
 
 @app.route('/turmas/nova', methods=['POST'])
@@ -188,15 +330,16 @@ def turma_nova():
     if session.get('user_type') != 'professor':
         return redirect(url_for('login'))
     nome = request.form['nome'].strip()
+    turno = request.form.get('turno', 'vespertino')
     if not nome:
-        flash('Nome da turma é obrigatório', 'error')
+        flash('Nome da turma e obrigatorio', 'error')
         return redirect(url_for('turmas_lista'))
     existing = query_db("SELECT id FROM turmas WHERE nome=?", [nome], one=True)
     if existing:
-        flash('Esta turma já existe', 'error')
+        flash('Esta turma ja existe', 'error')
         return redirect(url_for('turmas_lista'))
-    execute_db("INSERT INTO turmas (nome) VALUES (?)", (nome,))
-    log_historico(session['user_name'], f'Turma criada: {nome}')
+    execute_db("INSERT INTO turmas (nome, turno) VALUES (?, ?)", (nome, turno))
+    log_historico(session['user_name'], f'Turma criada: {nome} ({turno})')
     flash(f'Turma "{nome}" criada com sucesso!', 'success')
     return redirect(url_for('turmas_lista'))
 
@@ -207,31 +350,32 @@ def turma_editar(id):
         return redirect(url_for('login'))
     turma = query_db("SELECT * FROM turmas WHERE id=?", [id], one=True)
     if not turma:
-        flash('Turma não encontrada', 'error')
+        flash('Turma nao encontrada', 'error')
         return redirect(url_for('turmas_lista'))
     novo_nome = request.form['nome'].strip()
+    turno = request.form.get('turno', 'vespertino')
     if not novo_nome:
-        flash('Nome é obrigatório', 'error')
+        flash('Nome e obrigatorio', 'error')
         return redirect(url_for('turmas_lista'))
     existing = query_db("SELECT id FROM turmas WHERE nome=? AND id!=?", [novo_nome, id], one=True)
     if existing:
-        flash('Já existe uma turma com esse nome', 'error')
+        flash('Ja existe uma turma com esse nome', 'error')
         return redirect(url_for('turmas_lista'))
-    execute_db("UPDATE turmas SET nome=? WHERE id=?", (novo_nome, id))
-    execute_db("UPDATE alunos SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
-    execute_db("UPDATE frequencia SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
-    execute_db("UPDATE frequencia_pendente SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
-    execute_db("UPDATE provas SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
-    execute_db("UPDATE avisos SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
-    execute_db("UPDATE agenda SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
-    execute_db("UPDATE representantes SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
-    execute_db("UPDATE demandas SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
-    execute_db("UPDATE sugestoes SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
-    execute_db("UPDATE enquetes SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
-    execute_db("UPDATE reunioes SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
-    execute_db("UPDATE atividade_representante SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
-    log_historico(session['user_name'], f'Turma renomeada: {turma["nome"]} → {novo_nome}')
-    flash(f'Turma renomeada para "{novo_nome}"!', 'success')
+    execute_db("UPDATE turmas SET nome=?, turno=? WHERE id=?", (novo_nome, turno, id))
+    if novo_nome != turma['nome']:
+        execute_db("UPDATE alunos SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
+        execute_db("UPDATE frequencia SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
+        execute_db("UPDATE frequencia_pendente SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
+        execute_db("UPDATE provas SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
+        execute_db("UPDATE avisos SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
+        execute_db("UPDATE representantes SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
+        execute_db("UPDATE demandas SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
+        execute_db("UPDATE sugestoes SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
+        execute_db("UPDATE enquetes SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
+        execute_db("UPDATE reunioes SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
+        execute_db("UPDATE atividade_representante SET turma=? WHERE turma=?", (novo_nome, turma['nome']))
+    log_historico(session['user_name'], f'Turma editada: {turma["nome"]} -> {novo_nome} ({turno})')
+    flash(f'Turma atualizada!', 'success')
     return redirect(url_for('turmas_lista'))
 
 
@@ -259,7 +403,15 @@ def turma_alunos(id):
     outros_alunos = query_db("SELECT * FROM alunos WHERE turma!=? ORDER BY nome", [turma['nome']])
     todas_turmas = query_db("SELECT nome FROM turmas ORDER BY nome")
     rep = get_representante(turma['nome'])
-    return render_template('professor/turma_alunos.html', turma=turma, alunos=alunos_turma,
+    alunos_com_rep = []
+    for a in alunos_turma:
+        funcao_rep_row = query_db("SELECT funcao FROM representantes WHERE codigo_aluno=?", [a['codigo']], one=True)
+        funcao_rep = funcao_rep_row['funcao'] if funcao_rep_row else None
+        alunos_com_rep.append({
+            'id': a['id'], 'codigo': a['codigo'], 'nome': a['nome'], 'turma': a['turma'],
+            'nascimento': a['nascimento'], 'funcao_rep': funcao_rep
+        })
+    return render_template('professor/turma_alunos.html', turma=turma, alunos=alunos_com_rep,
                            outros=outros_alunos, todas_turmas=todas_turmas, representante=rep)
 
 
@@ -345,20 +497,25 @@ def turma_representantes(id):
             if not aluno:
                 flash('Aluno não encontrado nesta turma', 'error')
                 return redirect(url_for('turma_representantes', id=id))
-            execute_db("DELETE FROM representantes WHERE turma=?", [turma['nome']])
-            execute_db("INSERT INTO representantes (turma, codigo_aluno, funcao) VALUES (?, ?, ?)",
-                       (turma['nome'], codigo, funcao))
+            existente = query_db("SELECT * FROM representantes WHERE turma=? AND funcao=?", [turma['nome'], funcao], one=True)
+            if existente:
+                execute_db("UPDATE representantes SET codigo_aluno=? WHERE turma=? AND funcao=?", (codigo, turma['nome'], funcao))
+            else:
+                execute_db("INSERT INTO representantes (turma, codigo_aluno, funcao) VALUES (?, ?, ?)",
+                           (turma['nome'], codigo, funcao))
             log_historico(session['user_name'], f'{funcao.title()} definido(a): {aluno["nome"]} na turma {turma["nome"]}', aluno['nome'])
             flash(f'{aluno["nome"]} agora é {funcao} de {turma["nome"]}!', 'success')
         elif acao == 'remover':
-            execute_db("DELETE FROM representantes WHERE turma=?", [turma['nome']])
-            log_historico(session['user_name'], f'Representante removido da turma {turma["nome"]}')
-            flash('Representante removido!', 'success')
+            funcao = request.form.get('funcao')
+            execute_db("DELETE FROM representantes WHERE turma=? AND funcao=?", [turma['nome'], funcao])
+            log_historico(session['user_name'], f'{funcao.title()} removido da turma {turma["nome"]}')
+            flash(f'{funcao.title()} removido!', 'success')
         return redirect(url_for('turma_representantes', id=id))
 
     alunos_turma = query_db("SELECT * FROM alunos WHERE turma=? ORDER BY nome", [turma['nome']])
-    rep = get_representante(turma['nome'])
-    return render_template('professor/representantes.html', turma=turma, alunos=alunos_turma, representante=rep)
+    rep = query_db("SELECT * FROM representantes WHERE turma=? AND funcao='representante'", [turma['nome']], one=True)
+    vice = query_db("SELECT * FROM representantes WHERE turma=? AND funcao='vice'", [turma['nome']], one=True)
+    return render_template('professor/representantes.html', turma=turma, alunos=alunos_turma, representante=rep, vice=vice)
 
 
 # ==================== FREQUÊNCIA (PROFESSOR) ====================
@@ -367,47 +524,57 @@ def turma_representantes(id):
 def frequencia():
     if session.get('user_type') != 'professor':
         return redirect(url_for('login'))
-    turmas = get_turmas()
-    # ETAPA 11: Buscar disciplina do professor logado
+    turno_sel = request.args.get('turno', '')
+    turmas_db = query_db("SELECT nome, turno FROM turmas ORDER BY nome")
+    if turno_sel:
+        turmas = [t['nome'] for t in turmas_db if t['turno'] == turno_sel]
+    else:
+        turmas = [t['nome'] for t in turmas_db]
     prof = query_db("SELECT disciplina FROM professores WHERE nome=?", [session.get('user_name', '')], one=True)
     disc_padrao = prof['disciplina'] if prof and prof['disciplina'] else ''
 
     if request.method == 'POST':
         turma = request.form.get('turma')
-        disciplina = request.form.get('disciplina')
+        disciplina = disc_padrao
         data = request.form.get('data')
-        if not turma or not disciplina or not data:
-            flash('Selecione turma, disciplina e data', 'error')
+        bimestre = request.form.get('bimestre', '1')
+        if not turma or not data:
+            flash('Selecione turma e data', 'error')
             return redirect(url_for('frequencia'))
         alunos_turma = query_db("SELECT * FROM alunos WHERE turma=? ORDER BY nome", [turma])
         for a in alunos_turma:
-            presente = 1 if request.form.get(f'presenca_{a["codigo"]}') == 'on' else 0
+            status = request.form.get(f'status_{a["codigo"]}', 'presente')
+            presente = 1 if status == 'presente' else 0
+            atestado = 1 if status == 'atestado' else 0
             execute_db("""
-                INSERT INTO frequencia (codigo_aluno, disciplina, turma, data, presente)
-                VALUES (?, ?, ?, ?, ?)
-                ON CONFLICT(codigo_aluno, disciplina, turma, data) DO UPDATE SET presente=?
-            """, (a['codigo'], disciplina, turma, data, presente, presente))
+                INSERT INTO frequencia (codigo_aluno, disciplina, turma, data, presente, atestado, bimestre)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(codigo_aluno, disciplina, turma, data) DO UPDATE SET presente=?, atestado=?
+            """, (a['codigo'], disciplina, turma, data, presente, atestado, int(bimestre), presente, atestado))
             execute_db("DELETE FROM frequencia_pendente WHERE codigo_aluno=? AND disciplina=? AND turma=? AND data=?",
                        (a['codigo'], disciplina, turma, data))
-            if not presente:
+            if not presente and not atestado:
                 log_historico(session['user_name'], f'Falta registrada: {disciplina} em {data}', a['nome'])
-        flash('Frequência salva com sucesso!', 'success')
+        flash('Frequencia salva com sucesso!', 'success')
         return redirect(url_for('frequencia'))
 
     turma_sel = request.args.get('turma', '')
-    disc_sel = request.args.get('disciplina', disc_padrao)
+    disc_sel = disc_padrao
     data_sel = request.args.get('data', datetime.now().strftime('%Y-%m-%d'))
+    bimestre_sel = request.args.get('bimestre', '1')
     alunos_freq = []
-    if turma_sel and disc_sel and data_sel:
+    if turma_sel and data_sel:
         alunos_freq = query_db("""
             SELECT a.*,
                    (SELECT presente FROM frequencia f
-                    WHERE f.codigo_aluno=a.codigo AND f.disciplina=? AND f.turma=? AND f.data=?) as status
+                    WHERE f.codigo_aluno=a.codigo AND f.disciplina=? AND f.turma=? AND f.data=? AND f.bimestre=?) as status,
+                   (SELECT atestado FROM frequencia f
+                    WHERE f.codigo_aluno=a.codigo AND f.disciplina=? AND f.turma=? AND f.data=? AND f.bimestre=?) as tem_atestado
             FROM alunos a WHERE a.turma=? ORDER BY a.nome
-        """, [disc_sel, turma_sel, data_sel, turma_sel])
+        """, [disc_sel, turma_sel, data_sel, int(bimestre_sel), disc_sel, turma_sel, data_sel, int(bimestre_sel), turma_sel])
     return render_template('professor/frequencia.html', turmas=turmas, turma_sel=turma_sel,
-                           disc_sel=disc_sel, data_sel=data_sel, alunos=alunos_freq, disciplinas=DISCIPLINAS,
-                           disc_padrao=disc_padrao)
+                           disc_sel=disc_sel, data_sel=data_sel, bimestre=bimestre_sel,
+                           alunos=alunos_freq, disc_padrao=disc_padrao, turno_sel=turno_sel)
 
 
 @app.route('/frequencia/historico/<codigo>')
@@ -709,13 +876,36 @@ def alunos():
     if session.get('user_type') != 'professor':
         return redirect(url_for('login'))
     busca = request.args.get('q', '').strip()
-    turmas = get_turmas()
-    if busca:
-        lista = query_db("SELECT * FROM alunos WHERE nome LIKE ? OR codigo LIKE ? OR turma LIKE ? ORDER BY nome",
-                         [f'%{busca}%', f'%{busca}%', f'%{busca}%'])
+    turno_sel = request.args.get('turno', '')
+    turma_sel = request.args.get('turma', '')
+    turmas_db = query_db("SELECT nome, turno FROM turmas ORDER BY nome")
+    if turno_sel:
+        turmas_filtradas = [t['nome'] for t in turmas_db if t['turno'] == turno_sel]
     else:
-        lista = query_db("SELECT * FROM alunos ORDER BY nome")
-    return render_template('professor/alunos.html', alunos=lista, busca=busca, turmas=turmas)
+        turmas_filtradas = [t['nome'] for t in turmas_db]
+    query = "SELECT * FROM alunos WHERE 1=1"
+    params = []
+    if turma_sel:
+        query += " AND turma=?"
+        params.append(turma_sel)
+    elif turno_sel:
+        query += " AND turma IN ({})".format(','.join('?' * len(turmas_filtradas)))
+        params.extend(turmas_filtradas)
+    if busca:
+        query += " AND (nome LIKE ? OR codigo LIKE ?)"
+        params.extend([f'%{busca}%', f'%{busca}%'])
+    query += " ORDER BY nome"
+    lista = query_db(query, params)
+    alunos_com_rep = []
+    for a in lista:
+        rep = query_db("SELECT funcao FROM representantes WHERE codigo_aluno=?", [a['codigo']], one=True)
+        funcao_rep = rep['funcao'] if rep else None
+        alunos_com_rep.append({
+            'id': a['id'], 'codigo': a['codigo'], 'nome': a['nome'], 'turma': a['turma'],
+            'nascimento': a['nascimento'], 'funcao_rep': funcao_rep
+        })
+    return render_template('professor/alunos.html', alunos=alunos_com_rep, busca=busca,
+                           turmas_filtradas=turmas_filtradas, turno_sel=turno_sel, turma_sel=turma_sel)
 
 
 @app.route('/alunos/novo', methods=['GET', 'POST'])
@@ -728,11 +918,14 @@ def aluno_novo():
         nome = request.form['nome'].strip()
         turma = request.form['turma']
         nascimento = request.form.get('nascimento', '')
+        deficiencia = request.form.get('deficiencia', 'nao')
+        desc_deficiencia = request.form.get('desc_deficiencia', '') if deficiencia == 'sim' else ''
         existing = query_db("SELECT id FROM alunos WHERE codigo=?", [codigo], one=True)
         if existing:
-            flash('Este código já está em uso', 'error')
+            flash('Este codigo ja esta em uso', 'error')
             return render_template('professor/aluno_form.html', aluno=None, turmas=turmas, disciplinas=DISCIPLINAS)
-        execute_db("INSERT INTO alunos (codigo, nome, turma, nascimento) VALUES (?, ?, ?, ?)", (codigo, nome, turma, nascimento))
+        execute_db("INSERT INTO alunos (codigo, nome, turma, nascimento, deficiencia, desc_deficiencia) VALUES (?, ?, ?, ?, ?, ?)",
+                   (codigo, nome, turma, nascimento, deficiencia, desc_deficiencia))
         for disc in DISCIPLINAS:
             execute_db("INSERT OR IGNORE INTO notas (codigo_aluno, disciplina, nota) VALUES (?, ?, 0)", (codigo, disc))
         log_historico(session['user_name'], f'Aluno cadastrado: {nome} ({codigo})', nome)
@@ -748,13 +941,16 @@ def aluno_editar(id):
     turmas = get_turmas()
     aluno = query_db("SELECT * FROM alunos WHERE id=?", [id], one=True)
     if not aluno:
-        flash('Aluno não encontrado', 'error')
+        flash('Aluno nao encontrado', 'error')
         return redirect(url_for('alunos'))
     if request.method == 'POST':
         nome = request.form['nome'].strip()
         turma = request.form['turma']
         nascimento = request.form.get('nascimento', '')
-        execute_db("UPDATE alunos SET nome=?, turma=?, nascimento=? WHERE id=?", (nome, turma, nascimento, id))
+        deficiencia = request.form.get('deficiencia', 'nao')
+        desc_deficiencia = request.form.get('desc_deficiencia', '') if deficiencia == 'sim' else ''
+        execute_db("UPDATE alunos SET nome=?, turma=?, nascimento=?, deficiencia=?, desc_deficiencia=? WHERE id=?",
+                   (nome, turma, nascimento, deficiencia, desc_deficiencia, id))
         log_historico(session['user_name'], f'Aluno editado: {nome} ({aluno["codigo"]})', nome)
         flash('Aluno atualizado com sucesso!', 'success')
         return redirect(url_for('alunos'))
@@ -789,7 +985,7 @@ def aluno_perfil(id):
         return redirect(url_for('alunos'))
     notas = query_db("SELECT * FROM notas WHERE codigo_aluno=? ORDER BY disciplina", [aluno['codigo']])
     pendencias = query_db("SELECT * FROM pendencias WHERE codigo_aluno=? ORDER BY data DESC", [aluno['codigo']])
-    provas_turma = query_db("SELECT * FROM provas WHERE turma=? AND status='confirmada' ORDER BY data", [aluno['turma']])
+    provas_turma = query_db("SELECT * FROM provas WHERE turma=? AND status IN ('confirmada','pendente') ORDER BY data", [aluno['turma']])
     avisos_turma = query_db("SELECT * FROM avisos WHERE turma=? ORDER BY data DESC", [aluno['turma']])
     freq_por_disc = query_db("""
         SELECT disciplina, COUNT(*) as total,
@@ -819,28 +1015,58 @@ def notas():
     if session.get('user_type') != 'professor':
         return redirect(url_for('login'))
     if request.method == 'POST':
-        codigo = request.form.get('codigo_aluno')
-        disc = request.form.get('disciplina')
-        nota = request.form.get('nota', 0)
-        try:
-            nota = float(nota)
-        except:
-            nota = 0
-        aluno = query_db("SELECT nome FROM alunos WHERE codigo=?", [codigo], one=True)
-        execute_db("INSERT OR REPLACE INTO notas (codigo_aluno, disciplina, nota) VALUES (?, ?, ?)", (codigo, disc, nota))
-        log_historico(session['user_name'], f'Nota alterada: {disc} = {nota}', aluno['nome'] if aluno else codigo)
-        flash('Nota salva com sucesso!', 'success')
-        return redirect(url_for('notas'))
-    aluno_sel = request.args.get('aluno', '')
-    notas_aluno = []
-    aluno_obj = None
-    if aluno_sel:
-        aluno_obj = query_db("SELECT * FROM alunos WHERE codigo=?", [aluno_sel], one=True)
-        if aluno_obj:
-            notas_aluno = query_db("SELECT * FROM notas WHERE codigo_aluno=? ORDER BY disciplina", [aluno_sel])
-    lista_alunos = query_db("SELECT * FROM alunos ORDER BY nome")
-    return render_template('professor/notas.html', alunos=lista_alunos, aluno_sel=aluno_sel,
-                           notas=notas_aluno, aluno_obj=aluno_obj, disciplinas=DISCIPLINAS)
+        acao = request.form.get('acao', 'salvar')
+        if acao == 'salvar_tudo':
+            turma = request.form.get('turma', '')
+            bimestre = request.form.get('bimestre', '1')
+            disciplinas_form = request.form.getlist('disciplinas_form[]')
+            codigos = request.form.getlist('codigos[]')
+            for codigo in codigos:
+                for disc in disciplinas_form:
+                    nota_key = f'nota_{codigo}_{disc}'
+                    nota_val = request.form.get(nota_key, '')
+                    if nota_val:
+                        try:
+                            nota = float(nota_val)
+                            execute_db("INSERT OR REPLACE INTO notas (codigo_aluno, disciplina, nota, bimestre) VALUES (?, ?, ?, ?)",
+                                       (codigo, disc, nota, int(bimestre)))
+                        except:
+                            pass
+            log_historico(session['user_name'], f'Notas em lote salvas - Turma: {turma}, Bimestre: {bimestre}')
+            flash('Todas as notas foram salvas!', 'success')
+            return redirect(url_for('notas', turma=turma, bimestre=bimestre))
+        else:
+            codigo = request.form.get('codigo_aluno')
+            disc = request.form.get('disciplina')
+            nota = request.form.get('nota', 0)
+            bimestre = request.form.get('bimestre', '1')
+            try:
+                nota = float(nota)
+            except:
+                nota = 0
+            aluno = query_db("SELECT nome FROM alunos WHERE codigo=?", [codigo], one=True)
+            execute_db("INSERT OR REPLACE INTO notas (codigo_aluno, disciplina, nota, bimestre) VALUES (?, ?, ?, ?)",
+                       (codigo, disc, nota, int(bimestre)))
+            log_historico(session['user_name'], f'Nota alterada: {disc} = {nota}', aluno['nome'] if aluno else codigo)
+            flash('Nota salva com sucesso!', 'success')
+            return redirect(url_for('notas'))
+    turma_sel = request.args.get('turma', '')
+    bimestre_sel = request.args.get('bimestre', '1')
+    lista_alunos = query_db("SELECT * FROM alunos WHERE turma=? ORDER BY nome", [turma_sel]) if turma_sel else []
+    notas_dict = {}
+    if turma_sel:
+        for a in lista_alunos:
+            notas_aluno = query_db("SELECT disciplina, nota FROM notas WHERE codigo_aluno=? AND bimestre=?", [a['codigo'], int(bimestre_sel)])
+            notas_dict[a['codigo']] = {n['disciplina']: n['nota'] for n in notas_aluno}
+    turno_sel = request.args.get('turno', '')
+    turmas_db = query_db("SELECT nome, turno FROM turmas ORDER BY nome")
+    if turno_sel:
+        turmas_filtradas = [t['nome'] for t in turmas_db if t['turno'] == turno_sel]
+    else:
+        turmas_filtradas = [t['nome'] for t in turmas_db]
+    return render_template('professor/notas.html', alunos=lista_alunos, turma_sel=turma_sel,
+                           bimestre=bimestre_sel, notas_dict=notas_dict, turmas=turmas_filtradas,
+                           disciplinas=DISCIPLINAS, turno_sel=turno_sel, todas_turmas=turmas_db)
 
 
 # ==================== BOLETIM ====================
@@ -972,17 +1198,16 @@ def professor_novo():
         senha = generate_password_hash(request.form['senha'])
         disciplina = request.form.get('disciplina', '')
         turmas = request.form.get('turmas', '')
-        email_inst = request.form.get('email_institucional', '')
-        horario = request.form.get('horario_atendimento', '')
+        turnos = request.form.getlist('turnos')
         bio = request.form.get('bio', '')
         try:
-            execute_db("INSERT INTO professores (nome, email, senha, disciplina, turmas, email_institucional, horario_atendimento, bio) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                       (nome, email, senha, disciplina, turmas, email_inst, horario, bio))
+            execute_db("INSERT INTO professores (nome, email, senha, disciplina, turmas, turnos, bio) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                       (nome, email, senha, disciplina, turmas, ','.join(turnos), bio))
             log_historico(session['user_name'], f'Criou professor: {nome}')
             flash('Professor cadastrado com sucesso!', 'success')
             return redirect(url_for('professores_lista'))
         except Exception:
-            flash('Email já cadastrado!', 'error')
+            flash('Email ja cadastrado!', 'error')
     return render_template('professor/professor_form.html', professor=None, disciplinas=DISCIPLINAS, turmas=get_turmas())
 
 
@@ -992,23 +1217,22 @@ def professor_editar(id):
         return redirect(url_for('login'))
     prof = query_db("SELECT * FROM professores WHERE id=?", [id], one=True)
     if not prof:
-        flash('Professor não encontrado!', 'error')
+        flash('Professor nao encontrado!', 'error')
         return redirect(url_for('professores_lista'))
     if request.method == 'POST':
         nome = request.form['nome'].strip()
         email = request.form['email'].strip()
         disciplina = request.form.get('disciplina', '')
         turmas = request.form.get('turmas', '')
-        email_inst = request.form.get('email_institucional', '')
-        horario = request.form.get('horario_atendimento', '')
+        turnos = request.form.getlist('turnos')
         bio = request.form.get('bio', '')
         senha = request.form.get('senha', '').strip()
         if senha:
-            execute_db("UPDATE professores SET nome=?, email=?, senha=?, disciplina=?, turmas=?, email_institucional=?, horario_atendimento=?, bio=? WHERE id=?",
-                       (nome, email, generate_password_hash(senha), disciplina, turmas, email_inst, horario, bio, id))
+            execute_db("UPDATE professores SET nome=?, email=?, senha=?, disciplina=?, turmas=?, turnos=?, bio=? WHERE id=?",
+                       (nome, email, generate_password_hash(senha), disciplina, turmas, ','.join(turnos), bio, id))
         else:
-            execute_db("UPDATE professores SET nome=?, email=?, disciplina=?, turmas=?, email_institucional=?, horario_atendimento=?, bio=? WHERE id=?",
-                       (nome, email, disciplina, turmas, email_inst, horario, bio, id))
+            execute_db("UPDATE professores SET nome=?, email=?, disciplina=?, turmas=?, turnos=?, bio=? WHERE id=?",
+                       (nome, email, disciplina, turmas, ','.join(turnos), bio, id))
         log_historico(session['user_name'], f'Editou professor: {nome}')
         flash('Professor atualizado!', 'success')
         return redirect(url_for('professores_lista'))
@@ -1045,24 +1269,29 @@ def horarios():
     if session.get('user_type') != 'professor':
         return redirect(url_for('login'))
     turmas = get_turmas()
+    horarios_oficiais = query_db("SELECT * FROM horarios_oficiais WHERE turno='vespertino' ORDER BY tempo")
+    professores = query_db("SELECT nome, disciplina FROM professores ORDER BY nome")
     if request.method == 'POST':
         turma = request.form['turma']
         execute_db("DELETE FROM horarios WHERE turma=?", [turma])
-        disciplinas = request.form.getlist('horario_disciplina[]')
-        dias = request.form.getlist('horario_dia[]')
-        inicio = request.form.getlist('horario_inicio[]')
-        fim = request.form.getlist('horario_fim[]')
-        sala = request.form.getlist('horario_sala[]')
-        for i in range(len(disciplinas)):
-            if disciplinas[i] and dias[i] and inicio[i] and fim[i]:
-                execute_db("INSERT INTO horarios (turma, disciplina, dia, hora_inicio, hora_fim, sala, criado_por) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                           (turma, disciplinas[i], dias[i], inicio[i], fim[i], sala[i] if i < len(sala) else '', session['user_name']))
-        log_historico(session['user_name'], f'Atualizou horários da turma: {turma}')
-        flash('Horários atualizados!', 'success')
-        return redirect(url_for('horarios'))
+        for dia in ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta']:
+            for tempo in range(1, 6):
+                disc = request.form.get(f'disc_{dia}_{tempo}', '').strip()
+                prof = request.form.get(f'prof_{dia}_{tempo}', '').strip()
+                sala = request.form.get(f'sala_{dia}_{tempo}', '').strip()
+                if disc:
+                    execute_db("INSERT INTO horarios (turma, disciplina, dia, tempo, hora_inicio, hora_fim, professor, sala, criado_por) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                               (turma, disc, dia, tempo, '', '', prof, sala, session['user_name']))
+        log_historico(session['user_name'], f'Atualizou grade semanal da turma: {turma}')
+        flash('Grade semanal atualizada!', 'success')
+        return redirect(url_for('horarios', turma=turma))
     turma_sel = request.args.get('turma', turmas[0] if turmas else '')
-    horarios_lista = query_db("SELECT * FROM horarios WHERE turma=? ORDER BY dia, hora_inicio", [turma_sel]) if turma_sel else []
-    return render_template('professor/horarios.html', turmas=turmas, turma_sel=turma_sel, horarios=horarios_lista, disciplinas=DISCIPLINAS,
+    horarios_lista = query_db("SELECT * FROM horarios WHERE turma=? ORDER BY dia, tempo", [turma_sel]) if turma_sel else []
+    grade = {}
+    for h in horarios_lista:
+        grade[(h['dia'], h['tempo'])] = h
+    return render_template('professor/horarios.html', turmas=turmas, turma_sel=turma_sel, grade=grade,
+                           horarios_oficiais=horarios_oficiais, professores=professores, disciplinas=DISCIPLINAS,
                            dias=['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'])
 
 
@@ -1078,13 +1307,42 @@ def horario_excluir(id):
     return redirect(url_for('horarios', turma=h['turma'] if h else ''))
 
 
+@app.route('/representante/horarios', methods=['GET', 'POST'])
+def rep_horarios():
+    if session.get('user_type') != 'representante':
+        return redirect(url_for('login'))
+    turma = session['user_turma']
+    horarios_oficiais = query_db("SELECT * FROM horarios_oficiais WHERE turno='vespertino' ORDER BY tempo")
+    professores = query_db("SELECT nome, disciplina FROM professores ORDER BY nome")
+    if request.method == 'POST':
+        execute_db("DELETE FROM horarios WHERE turma=?", [turma])
+        for dia in ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta']:
+            for tempo in range(1, 6):
+                disc = request.form.get(f'disc_{dia}_{tempo}', '').strip()
+                prof = request.form.get(f'prof_{dia}_{tempo}', '').strip()
+                sala = request.form.get(f'sala_{dia}_{tempo}', '').strip()
+                if disc:
+                    execute_db("INSERT INTO horarios (turma, disciplina, dia, tempo, hora_inicio, hora_fim, professor, sala, criado_por) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                               (turma, disc, dia, tempo, '', '', prof, sala, session['user_name']))
+        log_atividade_rep(session['user_codigo'], turma, 'Atualizou grade semanal')
+        flash('Grade semanal atualizada!', 'success')
+        return redirect(url_for('rep_horarios'))
+    horarios_lista = query_db("SELECT * FROM horarios WHERE turma=? ORDER BY dia, tempo", [turma])
+    grade = {}
+    for h in horarios_lista:
+        grade[(h['dia'], h['tempo'])] = h
+    return render_template('representante/horarios.html', turma=turma, grade=grade,
+                           horarios_oficiais=horarios_oficiais, professores=professores, disciplinas=DISCIPLINAS,
+                           dias=['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'])
+
+
 @app.route('/calendario')
 def calendario_prof():
     if session.get('user_type') != 'professor':
         return redirect(url_for('login'))
     turmas = get_turmas()
     turma_sel = request.args.get('turma', turmas[0] if turmas else '')
-    provas = query_db("SELECT *, 'Prova' as tipo FROM provas WHERE turma=? AND status='confirmada' ORDER BY data", [turma_sel]) if turma_sel else []
+    provas = query_db("SELECT *, 'Prova' as tipo FROM provas WHERE turma=? AND status IN ('confirmada','pendente') ORDER BY data", [turma_sel]) if turma_sel else []
     agenda = query_db("SELECT *, 'Agenda' as tipo FROM agenda WHERE turma=? ORDER BY data", [turma_sel]) if turma_sel else []
     reunioes_db = query_db("SELECT *, 'Reunião' as tipo FROM reunioes WHERE turma=? ORDER BY data", [turma_sel]) if turma_sel else []
     eventos = sorted(list(provas) + list(agenda) + list(reunioes_db), key=lambda x: x['data'], reverse=True)
@@ -1110,7 +1368,7 @@ def rep_dashboard():
     avisos = query_db("SELECT * FROM avisos WHERE turma=? ORDER BY data DESC LIMIT 5", [turma])
 
     notas = query_db("SELECT * FROM notas WHERE codigo_aluno=? ORDER BY disciplina", [codigo])
-    provas = query_db("SELECT * FROM provas WHERE turma=? AND status='confirmada' ORDER BY data", [turma])
+    provas = query_db("SELECT * FROM provas WHERE turma=? AND status IN ('confirmada','pendente') ORDER BY data", [turma])
     freq_por_disc = query_db("""
         SELECT disciplina, COUNT(*) as total,
                SUM(CASE WHEN presente=1 THEN 1 ELSE 0 END) as presencas,
@@ -1472,10 +1730,11 @@ def rep_calendario():
     if session.get('user_type') != 'representante':
         return redirect(url_for('login'))
     turma = session['user_turma']
-    provas = query_db("SELECT *, 'Prova' as tipo FROM provas WHERE turma=? AND status='confirmada' ORDER BY data", [turma])
+    provas = query_db("SELECT *, 'Prova' as tipo FROM provas WHERE turma=? AND status IN ('confirmada','pendente') ORDER BY data", [turma])
     agenda = query_db("SELECT *, 'Agenda' as tipo FROM agenda WHERE turma=? ORDER BY data", [turma])
     reunioes = query_db("SELECT *, 'Reunião' as tipo FROM reunioes WHERE turma=? ORDER BY data", [turma])
-    eventos = sorted(list(provas) + list(agenda) + list(reunioes), key=lambda x: x['data'], reverse=True)
+    avisos = query_db("SELECT *, 'Aviso' as tipo FROM avisos WHERE turma=? ORDER BY data", [turma])
+    eventos = sorted(list(provas) + list(agenda) + list(reunioes) + list(avisos), key=lambda x: x['data'], reverse=True)
     return render_template('representante/calendario.html', eventos=eventos, turma=turma)
 
 
@@ -1493,6 +1752,76 @@ def rep_historico():
     return render_template('representante/historico.html', atividades=atividades, turma=turma)
 
 
+@app.route('/representante/minhas-info')
+def rep_minhas_info():
+    if session.get('user_type') != 'representante':
+        return redirect(url_for('login'))
+    codigo = session['user_codigo']
+    aluno = query_db("SELECT * FROM alunos WHERE codigo=?", [codigo], one=True)
+    if not aluno:
+        flash('Aluno não encontrado', 'error')
+        return redirect(url_for('rep_dashboard'))
+
+    notas = query_db("SELECT * FROM notas WHERE codigo_aluno=? ORDER BY disciplina", [codigo])
+    pendencias = query_db("SELECT * FROM pendencias WHERE codigo_aluno=? ORDER BY data DESC", [codigo])
+    provas = query_db("SELECT * FROM provas WHERE turma=? AND status IN ('confirmada','pendente') ORDER BY data", [aluno['turma']])
+    avisos = query_db("SELECT * FROM avisos WHERE turma=? ORDER BY data DESC", [aluno['turma']])
+    agenda = query_db("SELECT * FROM agenda WHERE turma=? ORDER BY data", [aluno['turma']])
+    horarios = query_db("SELECT * FROM horarios WHERE turma=? ORDER BY dia, hora_inicio", [aluno['turma']])
+
+    freq_por_disc = query_db("""
+        SELECT disciplina, COUNT(*) as total,
+               SUM(CASE WHEN presente=1 THEN 1 ELSE 0 END) as presencas,
+               SUM(CASE WHEN presente=0 THEN 1 ELSE 0 END) as faltas
+        FROM frequencia WHERE codigo_aluno=? GROUP BY disciplina ORDER BY disciplina
+    """, [codigo])
+    total_geral = query_db("SELECT COUNT(*) as t, SUM(CASE WHEN presente=0 THEN 1 ELSE 0 END) as f FROM frequencia WHERE codigo_aluno=?", [codigo], one=True)
+
+    media_geral = 0
+    count = 0
+    for n in notas:
+        if n['nota'] > 0:
+            media_geral += n['nota']
+            count += 1
+    if count > 0:
+        media_geral = round(media_geral / count, 1)
+    situacao = 'Aprovado' if media_geral >= 7 else ('Recuperação' if media_geral >= 5 else 'Reprovado')
+
+    boletim = []
+    for n in notas:
+        freq = next((f for f in freq_por_disc if f['disciplina'] == n['disciplina']), None)
+        presencas = freq['presencas'] if freq else 0
+        faltas = freq['faltas'] if freq else 0
+        pct = round((presencas / (presencas + faltas)) * 100, 1) if (presencas + faltas) > 0 else 0
+        sit = 'Aprovado' if n['nota'] >= 7 else ('Recuperação' if n['nota'] >= 5 else 'Reprovado')
+        boletim.append({'disciplina': n['disciplina'], 'nota': n['nota'], 'presencas': presencas, 'faltas': faltas, 'frequencia': pct, 'situacao': sit})
+
+    import json
+    enquetes_raw = query_db("SELECT * FROM enquetes WHERE turma=? AND ativa=1 ORDER BY data DESC", [aluno['turma']])
+    enquetes = []
+    for e in enquetes_raw:
+        opcoes = json.loads(e['opcoes'])
+        votos = query_db("SELECT opcao, COUNT(*) as c FROM votos_enquete WHERE enquete_id=? GROUP BY opcao", [e['id']])
+        meu_voto = query_db("SELECT opcao FROM votos_enquete WHERE enquete_id=? AND codigo_aluno=?", [e['id'], codigo], one=True)
+        enquetes.append({'enquete': e, 'opcoes': opcoes, 'votos': {v['opcao']: v['c'] for v in votos}, 'meu_voto': meu_voto['opcao'] if meu_voto else None})
+
+    eventos = []
+    for p in provas:
+        eventos.append({'data': p['data'], 'tipo': 'Prova', 'titulo': p['tipo'] + ' — ' + p['disciplina'], 'cor': '#ef4444', 'icone': '', 'detalhes': p['conteudo'] if p['conteudo'] else ''})
+    for a in avisos:
+        eventos.append({'data': a['data'], 'tipo': 'Aviso', 'titulo': a['titulo'], 'cor': '#3b82f6', 'icone': '', 'detalhes': a['descricao'] if a['descricao'] else ''[:100]})
+    for e in agenda:
+        eventos.append({'data': e['data'], 'tipo': e['tipo'] if e['tipo'] else 'Evento', 'titulo': e['titulo'], 'cor': '#f59e0b', 'icone': '', 'detalhes': ''})
+    eventos.sort(key=lambda x: x['data'])
+
+    return render_template('representante/minhas_info.html', aluno=aluno, notas=notas,
+                           pendencias=pendencias, provas=provas, avisos=avisos, agenda=agenda,
+                           horarios=horarios, freq_por_disc=freq_por_disc, total_geral=total_geral,
+                           media_geral=media_geral, situacao=situacao, boletim=boletim,
+                           enquetes=enquetes, turma=aluno['turma'], eventos=eventos,
+                           dias=['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'])
+
+
 # ==================== ALUNO PORTAL ====================
 
 @app.route('/portal')
@@ -1503,7 +1832,7 @@ def portal_aluno():
     aluno = query_db("SELECT * FROM alunos WHERE codigo=?", [codigo], one=True)
     notas = query_db("SELECT * FROM notas WHERE codigo_aluno=? ORDER BY disciplina", [codigo])
     pendencias = query_db("SELECT * FROM pendencias WHERE codigo_aluno=? ORDER BY data DESC", [codigo])
-    provas = query_db("SELECT * FROM provas WHERE turma=? AND status='confirmada' ORDER BY data", [aluno['turma']])
+    provas = query_db("SELECT * FROM provas WHERE turma=? AND status IN ('confirmada','pendente') ORDER BY data", [aluno['turma']])
     avisos = query_db("SELECT * FROM avisos WHERE turma=? ORDER BY data DESC", [aluno['turma']])
     agenda = query_db("SELECT * FROM agenda WHERE turma=? ORDER BY data", [aluno['turma']])
     enquetes = query_db("SELECT * FROM enquetes WHERE turma=? AND ativa=1 ORDER BY data DESC", [aluno['turma']])
@@ -1541,12 +1870,23 @@ def portal_aluno():
             'meu_voto': meu_voto['opcao'] if meu_voto else None
         })
 
+    eventos = []
+    for p in provas:
+        eventos.append({'data': p['data'], 'tipo': 'Prova', 'titulo': p['tipo'] + ' — ' + p['disciplina'], 'cor': '#ef4444', 'icone': '', 'detalhes': p['conteudo'] if p['conteudo'] else ''})
+    for a in avisos:
+        eventos.append({'data': a['data'], 'tipo': 'Aviso', 'titulo': a['titulo'], 'cor': '#3b82f6', 'icone': '', 'detalhes': a['descricao'] if a['descricao'] else ''[:100]})
+    for r in reunioes:
+        eventos.append({'data': r['data'], 'tipo': 'Reunião', 'titulo': r['assunto'], 'cor': '#8b5cf6', 'icone': '', 'detalhes': r['pauta'] if r['pauta'] else ''[:100]})
+    for e in agenda:
+        eventos.append({'data': e['data'], 'tipo': e['tipo'] if e['tipo'] else 'Evento', 'titulo': e['titulo'], 'cor': '#f59e0b', 'icone': '', 'detalhes': ''})
+    eventos.sort(key=lambda x: x['data'])
+
     return render_template('aluno/portal.html', aluno=aluno, notas=notas,
                            pendencias=pendencias, provas=provas, avisos=avisos, agenda=agenda,
                            media_geral=media_geral, situacao=situacao,
                            freq_por_disc=freq_por_disc, total_geral=total_geral,
                            enquetes=enquetes_com_votos, demandas=demandas,
-                           sugestoes=sugestoes, reunioes=reunioes)
+                           sugestoes=sugestoes, reunioes=reunioes, eventos=eventos)
 
 
 @app.route('/portal/votar/<int:enquete_id>', methods=['POST'])

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Provas — Sistema Escolar (beta){% endblock %}
-{% block page_title %}📅 Provas{% endblock %}
+{% block page_title %} Provas{% endblock %}
 {% block content %}
 <div class="card" style="margin-bottom:20px">
   <div class="card-header"><h2>Agendar Nova Prova</h2></div>
@@ -57,9 +57,9 @@
           <td><small>{{ p.criado_por_funcao }}</small></td>
           <td class="actions">
             <form method="POST" action="{{ url_for('prova_confirmar', id=p.id) }}" style="display:inline">
-              <button type="submit" class="btn btn-sm btn-success">✅ Confirmar</button>
+              <button type="submit" class="btn btn-sm btn-success"> Confirmar</button>
             </form>
-            <a href="{{ url_for('prova_recusar', id=p.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Recusar esta prova?')" style="color:var(--danger)">❌ Recusar</a>
+            <a href="{{ url_for('prova_recusar', id=p.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Recusar esta prova?')" style="color:var(--danger)"> Recusar</a>
           </td>
         </tr>
         {% endfor %}
@@ -82,7 +82,7 @@
           <td>{{ p.disciplina }}</td>
           <td><span class="badge {% if p.tipo == 'Prova' %}badge-danger{% elif p.tipo == 'Trabalho' %}badge-warning{% else %}badge-success{% endif %}">{{ p.tipo }}</span></td>
           <td>{{ p.conteudo or '-' }}</td>
-          <td><a href="{{ url_for('prova_excluir', id=p.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir esta prova?')">🗑️</a></td>
+          <td><a href="{{ url_for('prova_excluir', id=p.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir esta prova?')"></a></td>
         </tr>
         {% endfor %}
         {% if not provas %}

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Calendário — Sistema Escolar (beta){% endblock %}
-{% block page_title %}📆 Calendário Integrado{% endblock %}
+{% block page_title %} Calendário Integrado{% endblock %}
 {% block content %}
 <div class="card" style="margin-bottom:20px">
   <div class="card-header"><h2>Filtrar por Turma</h2></div>
@@ -27,11 +27,11 @@
           <td><strong>{{ e.data }}</strong></td>
           <td>
             {% if e.tipo == 'Prova' %}
-              <span class="badge badge-danger">📅 {{ e.tipo }}</span>
+              <span class="badge badge-danger"> {{ e.tipo }}</span>
             {% elif e.tipo == 'Reunião' %}
-              <span class="badge badge-primary">🤝 {{ e.tipo }}</span>
+              <span class="badge badge-primary"> {{ e.tipo }}</span>
             {% else %}
-              <span class="badge badge-success">📆 {{ e.tipo }}</span>
+              <span class="badge badge-success"> {{ e.tipo }}</span>
             {% endif %}
           </td>
           <td>{{ e.titulo if e.titulo else (e.conteudo if e.conteudo else e.assuntos) }}</td>

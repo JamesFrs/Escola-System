@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ professor.nome }} — Sistema Escolar (beta){% endblock %}
-{% block page_title %}👨‍🏫 Perfil do Professor{% endblock %}
+{% block page_title %} Perfil do Professor{% endblock %}
 {% block content %}
 <div class="card" style="max-width:700px">
   <div style="padding:24px;display:flex;gap:20px;align-items:flex-start">
@@ -9,7 +9,7 @@
     </div>
     <div style="flex:1">
       <h2 style="margin:0 0 8px">{{ professor.nome }}</h2>
-      <p style="color:var(--text-secondary);margin:0 0 16px">✉️ {{ professor.email }}</p>
+      <p style="color:var(--text-secondary);margin:0 0 16px"> {{ professor.email }}</p>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="info-box">
@@ -38,7 +38,7 @@
       {% endif %}
 
       <div style="margin-top:20px;display:flex;gap:8px">
-        <a href="{{ url_for('professor_editar', id=professor.id) }}" class="btn btn-primary">✏️ Editar</a>
+        <a href="{{ url_for('professor_editar', id=professor.id) }}" class="btn btn-primary"> Editar</a>
         <a href="{{ url_for('professores_lista') }}" class="btn btn-outline">← Voltar</a>
       </div>
     </div>

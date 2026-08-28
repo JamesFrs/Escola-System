@@ -1,84 +1,96 @@
 {% extends "base.html" %}
-{% block title %}Frequência — Sistema Escolar (beta){% endblock %}
-{% block page_title %}✅ Frequência{% endblock %}
+{% block title %}Frequencia{% endblock %}
+{% block page_title %}Frequencia — {{ disc_padrao }}{% endblock %}
 {% block content %}
-{% if disc_padrao %}
-<div style="margin-bottom:12px;padding:12px 16px;background:rgba(34,153,234,0.08);border-radius:8px;border-left:4px solid var(--primary)">
-  <strong>Sua disciplina:</strong> {{ disc_padrao }}
-</div>
-{% endif %}
 
 <div class="card" style="margin-bottom:20px">
-  <div class="card-header"><h2>Registrar Frequência</h2></div>
-  <form method="GET" action="{{ url_for('frequencia') }}" style="display:flex;gap:12px;align-items:end;flex-wrap:wrap;padding:16px 20px">
-    <div class="form-group" style="min-width:160px">
+  <div class="card-header"><h2>Registrar Frequencia</h2></div>
+  <form method="GET" style="padding:16px 20px;display:flex;gap:16px;flex-wrap:wrap;align-items:end">
+    <div class="form-group" style="margin:0;min-width:150px">
+      <label>Turno</label>
+      <select name="turno" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        <option value="matutino" {% if turno_sel == 'matutino' %}selected{% endif %}>Matutino</option>
+        <option value="vespertino" {% if turno_sel == 'vespertino' %}selected{% endif %}>Vespertino</option>
+        <option value="noturno" {% if turno_sel == 'noturno' %}selected{% endif %}>Noturno</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin:0;min-width:200px">
       <label>Turma</label>
       <select name="turma" required onchange="this.form.submit()">
         <option value="">Selecione...</option>
         {% for t in turmas %}
-        <option value="{{ t }}" {{ 'selected' if t == turma_sel }}>{{ t }}</option>
+        <option {% if t == turma_sel %}selected{% endif %}>{{ t }}</option>
         {% endfor %}
       </select>
     </div>
-    <div class="form-group" style="min-width:160px">
+    <div class="form-group" style="margin:0">
       <label>Disciplina</label>
-      <select name="disciplina" required onchange="this.form.submit()">
-        {% for d in disciplinas %}
-        <option value="{{ d }}" {{ 'selected' if d == disc_sel }}>{{ d }}</option>
+      <input type="text" value="{{ disc_padrao }}" disabled style="padding:10px;border:1px solid var(--border);border-radius:8px;background:#0f0820;color:var(--text)">
+    </div>
+    <div class="form-group" style="margin:0">
+      <label>Data</label>
+      <input type="date" name="data" value="{{ data_sel }}" onchange="this.form.submit()">
+    </div>
+    <div class="form-group" style="margin:0">
+      <label>Bimestre</label>
+      <select name="bimestre" onchange="this.form.submit()">
+        {% for b in [1,2,3,4] %}
+        <option value="{{ b }}" {% if bimestre|int == b %}selected{% endif %}>{{ b }} Bimestre</option>
         {% endfor %}
       </select>
-    </div>
-    <div class="form-group" style="min-width:160px">
-      <label>Data</label>
-      <input type="date" name="data" value="{{ data_sel }}" required onchange="this.form.submit()">
     </div>
   </form>
 </div>
 
-{% if alunos %}
-<div class="card">
-  <div class="card-header">
-    <h2>{{ disc_sel }} — {{ turma_sel }} — {{ data_sel }}</h2>
-  </div>
-  <form method="POST">
-    <input type="hidden" name="turma" value="{{ turma_sel }}">
-    <input type="hidden" name="disciplina" value="{{ disc_sel }}">
-    <input type="hidden" name="data" value="{{ data_sel }}">
+{% if turma_sel and alunos %}
+<form method="POST">
+  <input type="hidden" name="turma" value="{{ turma_sel }}">
+  <input type="hidden" name="data" value="{{ data_sel }}">
+  <input type="hidden" name="bimestre" value="{{ bimestre }}">
+  
+  <div class="card">
+    <div class="card-header" style="justify-content:space-between">
+      <h2>Alunos — {{ turma_sel }}</h2>
+      <button type="submit" class="btn btn-success">Salvar Frequencia</button>
+    </div>
     <div class="table-container">
       <table>
-        <thead><tr><th>Nome</th><th>Código</th><th>Situação</th><th>Ação</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Aluno</th>
+            <th style="text-align:center;width:100px">Presente</th>
+            <th style="text-align:center;width:100px">Ausente</th>
+            <th style="text-align:center;width:100px">Atestado</th>
+          </tr>
+        </thead>
         <tbody>
           {% for a in alunos %}
           <tr>
-            <td><strong>{{ a.nome }}</strong></td>
-            <td>{{ a.codigo }}</td>
-            <td>
-              {% if a.status is not none %}
-                {% if a.status == 1 %}
-                  <span class="badge badge-success">Presente</span>
-                {% else %}
-                  <span class="badge badge-danger">Faltou</span>
-                {% endif %}
-              {% else %}
-                <span class="badge badge-warning">Não registrado</span>
-              {% endif %}
+            <td><strong>{{ a.nome }}</strong><br><small>{{ a.codigo }}</small></td>
+            <td style="text-align:center">
+              <input type="radio" name="status_{{ a.codigo }}" value="presente" 
+                     {% if a.status == 1 %}checked{% elif not a.status %}checked{% endif %}>
             </td>
-            <td>
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
-                <input type="checkbox" name="presenca_{{ a.codigo }}" {{ 'checked' if a.status != 0 }}
-                       onchange="this.closest('tr').querySelector('.badge').className='badge '+(this.checked?'badge-success':'badge-danger');this.closest('tr').querySelector('.badge').textContent=this.checked?'Presente':'Faltou'">
-                Presente
-              </label>
+            <td style="text-align:center">
+              <input type="radio" name="status_{{ a.codigo }}" value="ausente"
+                     {% if a.status == 0 and a.status is not none %}checked{% endif %}>
+            </td>
+            <td style="text-align:center">
+              <input type="radio" name="status_{{ a.codigo }}" value="atestado"
+                     {% if a.tem_atestado == 1 %}checked{% endif %}>
             </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-    <div style="padding:16px;text-align:right">
-      <button type="submit" class="btn btn-success">💾 Salvar Frequência</button>
-    </div>
-  </form>
-</div>
+  </div>
+  <div style="margin-top:16px;display:flex;justify-content:flex-end">
+    <button type="submit" class="btn btn-success">Salvar Frequencia</button>
+  </div>
+</form>
+{% elif turma_sel %}
+<div class="card"><div class="card-header"><h2>Nenhum aluno encontrado</h2></div></div>
 {% endif %}
 {% endblock %}

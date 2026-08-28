@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Histórico de Frequência — {{ aluno.nome }}{% endblock %}
-{% block page_title %}📋 Frequência — {{ aluno.nome }}{% endblock %}
+{% block page_title %} Frequência — {{ aluno.nome }}{% endblock %}
 {% block content %}
 <div class="card-header" style="margin-bottom:20px">
   <a href="{{ url_for('frequencia') }}" class="btn btn-outline">← Voltar</a>
@@ -53,9 +53,9 @@
           <td><span class="badge badge-primary">{{ r.turma }}</span></td>
           <td>
             {% if r.presente == 1 %}
-              <span class="badge badge-success">✅ Presente</span>
+              <span class="badge badge-success"> Presente</span>
             {% else %}
-              <span class="badge badge-danger">❌ Falta</span>
+              <span class="badge badge-danger"> Falta</span>
             {% endif %}
           </td>
         </tr>

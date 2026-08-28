@@ -6,7 +6,7 @@
   <title>{% block title %}Sistema Escolar (beta){% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20260828">
   {% block head %}{% endblock %}
 </head>
 <body>
@@ -14,46 +14,45 @@
   <div class="app-layout">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <h2>🎓 Sistema Escolar (beta)</h2>
+        <h2>Sistema Escolar (beta)</h2>
         <p>Painel Professor</p>
       </div>
       <nav class="sidebar-nav">
-        <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">📊 Dashboard</a>
+        <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard <span class="arrow">&#8250;</span></a>
         <div class="nav-section">Cadastros</div>
-        <a href="{{ url_for('alunos') }}" class="{% if request.endpoint in ('alunos','aluno_novo','aluno_editar','aluno_perfil') %}active{% endif %}">👨‍🎓 Alunos</a>
-        <a href="{{ url_for('turmas_lista') }}" class="{% if request.endpoint in ('turmas_lista','turma_alunos','turma_representantes') %}active{% endif %}">🏫 Turmas</a>
-        <a href="{{ url_for('professores_lista') }}" class="{% if request.endpoint in ('professores_lista','professor_novo','professor_editar','professor_perfil') %}active{% endif %}">👨‍🏫 Professores</a>
+        <a href="{{ url_for('alunos') }}" class="{% if request.endpoint in ('alunos','aluno_novo','aluno_editar','aluno_perfil') %}active{% endif %}">Alunos <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('turmas_lista') }}" class="{% if request.endpoint in ('turmas_lista','turma_alunos','turma_representantes') %}active{% endif %}">Turmas <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('professores_lista') }}" class="{% if request.endpoint in ('professores_lista','professor_novo','professor_editar','professor_perfil') %}active{% endif %}">Professores <span class="arrow">&#8250;</span></a>
         <div class="nav-section">Escolar</div>
-        <a href="{{ url_for('notas') }}" class="{% if request.endpoint == 'notas' %}active{% endif %}">📝 Notas</a>
-        <a href="{{ url_for('frequencia') }}" class="{% if request.endpoint in ('frequencia','frequencia_historico') %}active{% endif %}">✅ Frequência</a>
-        <a href="{{ url_for('frequencia_pendente') }}" class="{% if request.endpoint == 'frequencia_pendente' %}active{% endif %}">⏳ Freq. Pendente</a>
-        <a href="{{ url_for('provas') }}" class="{% if request.endpoint == 'provas' %}active{% endif %}">📅 Provas</a>
-        <a href="{{ url_for('horarios') }}" class="{% if request.endpoint == 'horarios' %}active{% endif %}">🕐 Horários</a>
-        <a href="{{ url_for('pendencias') }}" class="{% if request.endpoint == 'pendencias' %}active{% endif %}">⚠️ Pendências</a>
+        <a href="{{ url_for('notas') }}" class="{% if request.endpoint == 'notas' %}active{% endif %}">Notas <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('frequencia') }}" class="{% if request.endpoint in ('frequencia','frequencia_historico') %}active{% endif %}">Frequencia <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('frequencia_pendente') }}" class="{% if request.endpoint == 'frequencia_pendente' %}active{% endif %}">Freq. Pendente <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('provas') }}" class="{% if request.endpoint == 'provas' %}active{% endif %}">Provas <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('horarios') }}" class="{% if request.endpoint == 'horarios' %}active{% endif %}">Horarios <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('pendencias') }}" class="{% if request.endpoint == 'pendencias' %}active{% endif %}">Pendencias <span class="arrow">&#8250;</span></a>
         <div class="nav-section">Representantes</div>
-        <a href="{{ url_for('demandas_prof') }}" class="{% if request.endpoint == 'demandas_prof' %}active{% endif %}">📩 Demandas</a>
-        <a href="{{ url_for('sugestoes_prof') }}" class="{% if request.endpoint == 'sugestoes_prof' %}active{% endif %}">💡 Sugestões</a>
-        <div class="nav-section">Comunicação</div>
-        <a href="{{ url_for('avisos') }}" class="{% if request.endpoint == 'avisos' %}active{% endif %}">📢 Avisos</a>
-        <a href="{{ url_for('agenda') }}" class="{% if request.endpoint == 'agenda' %}active{% endif %}">📆 Agenda</a>
-        <a href="{{ url_for('calendario_prof') }}" class="{% if request.endpoint == 'calendario_prof' %}active{% endif %}">📅 Calendário</a>
+        <a href="{{ url_for('demandas_prof') }}" class="{% if request.endpoint == 'demandas_prof' %}active{% endif %}">Demandas <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('sugestoes_prof') }}" class="{% if request.endpoint == 'sugestoes_prof' %}active{% endif %}">Sugestoes <span class="arrow">&#8250;</span></a>
+        <div class="nav-section">Comunicacao</div>
+        <a href="{{ url_for('avisos') }}" class="{% if request.endpoint == 'avisos' %}active{% endif %}">Avisos <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('calendario_mensal') }}" class="{% if request.endpoint == 'calendario_mensal' %}active{% endif %}">Calendario <span class="arrow">&#8250;</span></a>
         <div class="nav-section">Sistema</div>
-        <a href="{{ url_for('historico') }}" class="{% if request.endpoint == 'historico' %}active{% endif %}">📋 Histórico</a>
+        <a href="{{ url_for('historico') }}" class="{% if request.endpoint == 'historico' %}active{% endif %}">Historico <span class="arrow">&#8250;</span></a>
       </nav>
       <div class="sidebar-footer">
-        <span style="color:var(--text-sidebar);font-size:13px">👤 {{ session.user_name }}</span>
+        <span style="color:var(--text-sidebar);font-size:13px">{{ session.user_name }}</span>
         <div style="display:flex;gap:8px;align-items:center">
-          <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema">🌓</button>
-          <a href="{{ url_for('logout') }}">🚪 Sair</a>
+          <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema">&#9790;</button>
+          <a href="{{ url_for('logout') }}">Sair</a>
         </div>
       </div>
     </aside>
     <main class="main-content">
       <div class="topbar">
-        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"></button>
         <h1>{% block page_title %}{% endblock %}</h1>
         <div class="topbar-search">
-          <input type="text" id="buscaGlobal" placeholder="🔍 Buscar aluno..." onkeyup="buscaGlobal(this.value)">
+          <input type="text" id="buscaGlobal" placeholder=" Buscar aluno..." onkeyup="buscaGlobal(this.value)">
           <div id="resultadosBusca" class="search-dropdown"></div>
         </div>
       </div>
@@ -70,36 +69,39 @@
   <div class="app-layout">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <h2>🎓 Sistema Escolar (beta)</h2>
+        <h2>Sistema Escolar (beta)</h2>
         <p>Representante — {{ session.user_turma }}</p>
       </div>
       <nav class="sidebar-nav">
-        <a href="{{ url_for('rep_dashboard') }}" class="{% if request.endpoint == 'rep_dashboard' %}active{% endif %}">📊 Minha Turma</a>
+        <a href="{{ url_for('rep_dashboard') }}" class="{% if request.endpoint == 'rep_dashboard' %}active{% endif %}">Minha Turma <span class="arrow">&#8250;</span></a>
         <div class="nav-section">Minha Turma</div>
-        <a href="{{ url_for('rep_alunos') }}" class="{% if request.endpoint == 'rep_alunos' %}active{% endif %}">👨‍🎓 Alunos</a>
-        <a href="{{ url_for('rep_frequencia') }}" class="{% if request.endpoint == 'rep_frequencia' %}active{% endif %}">✅ Registrar Frequência</a>
-        <a href="{{ url_for('rep_provas') }}" class="{% if request.endpoint == 'rep_provas' %}active{% endif %}">📅 Informar Provas</a>
-        <a href="{{ url_for('rep_avisos') }}" class="{% if request.endpoint == 'rep_avisos' %}active{% endif %}">📢 Publicar Avisos</a>
+        <a href="{{ url_for('rep_alunos') }}" class="{% if request.endpoint == 'rep_alunos' %}active{% endif %}">Alunos <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('rep_frequencia') }}" class="{% if request.endpoint == 'rep_frequencia' %}active{% endif %}">Registrar Frequencia <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('rep_provas') }}" class="{% if request.endpoint == 'rep_provas' %}active{% endif %}">Informar Provas <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('rep_avisos') }}" class="{% if request.endpoint == 'rep_avisos' %}active{% endif %}">Publicar Avisos <span class="arrow">&#8250;</span></a>
         <div class="nav-section">Canal</div>
-        <a href="{{ url_for('rep_demandas') }}" class="{% if request.endpoint == 'rep_demandas' %}active{% endif %}">📩 Demandas</a>
-        <a href="{{ url_for('rep_sugestoes') }}" class="{% if request.endpoint == 'rep_sugestoes' %}active{% endif %}">💡 Sugestões</a>
-        <a href="{{ url_for('rep_enquetes') }}" class="{% if request.endpoint == 'rep_enquetes' %}active{% endif %}">📊 Enquetes</a>
-        <a href="{{ url_for('rep_reunioes') }}" class="{% if request.endpoint == 'rep_reunioes' %}active{% endif %}">🤝 Reuniões</a>
+        <a href="{{ url_for('rep_demandas') }}" class="{% if request.endpoint == 'rep_demandas' %}active{% endif %}">Demandas <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('rep_sugestoes') }}" class="{% if request.endpoint == 'rep_sugestoes' %}active{% endif %}">Sugestoes <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('rep_enquetes') }}" class="{% if request.endpoint == 'rep_enquetes' %}active{% endif %}">Enquetes <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('rep_reunioes') }}" class="{% if request.endpoint == 'rep_reunioes' %}active{% endif %}">Reunioes <span class="arrow">&#8250;</span></a>
         <div class="nav-section">Agenda</div>
-        <a href="{{ url_for('rep_calendario') }}" class="{% if request.endpoint == 'rep_calendario' %}active{% endif %}">📆 Calendário</a>
-        <a href="{{ url_for('rep_historico') }}" class="{% if request.endpoint == 'rep_historico' %}active{% endif %}">📋 Histórico</a>
+        <a href="{{ url_for('rep_calendario_mensal') }}" class="{% if request.endpoint == 'rep_calendario_mensal' %}active{% endif %}">Calendario <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('rep_horarios') }}" class="{% if request.endpoint == 'rep_horarios' %}active{% endif %}">Horarios <span class="arrow">&#8250;</span></a>
+        <a href="{{ url_for('rep_historico') }}" class="{% if request.endpoint == 'rep_historico' %}active{% endif %}">Historico <span class="arrow">&#8250;</span></a>
+        <div class="nav-section">Minha Conta</div>
+        <a href="{{ url_for('rep_minhas_info') }}" class="{% if request.endpoint == 'rep_minhas_info' %}active{% endif %}">Minhas Informacoes <span class="arrow">&#8250;</span></a>
       </nav>
       <div class="sidebar-footer">
-        <span style="color:var(--text-sidebar);font-size:13px">👤 {{ session.user_name }}</span>
+        <span style="color:var(--text-sidebar);font-size:13px">{{ session.user_name }}</span>
         <div style="display:flex;gap:8px;align-items:center">
-          <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema">🌓</button>
-          <a href="{{ url_for('logout') }}">🚪 Sair</a>
+          <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema">&#9790;</button>
+          <a href="{{ url_for('logout') }}">Sair</a>
         </div>
       </div>
     </aside>
     <main class="main-content">
       <div class="topbar">
-        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"></button>
         <h1>{% block page_title_rep %}{% endblock %}</h1>
       </div>
       <div id="pageContent">
@@ -114,10 +116,10 @@
   {% elif session.get('user_type') == 'aluno' %}
   <div class="portal-layout">
     <header class="portal-header">
-      <h1>🎓 Sistema Escolar (beta) — Portal do Aluno</h1>
+      <h1> Sistema Escolar (beta) — Portal do Aluno</h1>
       <div class="portal-user">
-        <span>👤 {{ session.user_name }}</span>
-        <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline">🚪 Sair</a>
+        <span> {{ session.user_name }}</span>
+        <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline"> Sair</a>
       </div>
     </header>
     <main class="portal-main">

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}{{ 'Editar' if aluno else 'Novo' }} Aluno — Sistema Escolar (beta){% endblock %}
-{% block page_title %}{{ '✏️ Editar' if aluno else '➕ Novo' }} Aluno{% endblock %}
+{% block title %}{{ 'Editar' if aluno else 'Novo' }} Aluno{% endblock %}
+{% block page_title %}{{ 'Editar' if aluno else 'Novo' }} Aluno{% endblock %}
 {% block content %}
 <div class="card">
   <form method="POST" style="max-width:600px">
@@ -10,7 +10,7 @@
         <input type="text" name="nome" value="{{ aluno.nome if aluno else '' }}" required>
       </div>
       <div class="form-group">
-        <label>Código *</label>
+        <label>Codigo *</label>
         <input type="text" name="codigo" value="{{ aluno.codigo if aluno else '' }}" {{ 'readonly' if aluno else 'required' }} placeholder="Ex: 20260045">
       </div>
     </div>
@@ -29,10 +29,28 @@
         <input type="date" name="nascimento" value="{{ aluno.nascimento if aluno else '' }}">
       </div>
     </div>
+    <div class="form-group">
+      <label>Aluno possui deficiencia?</label>
+      <select name="deficiencia" id="deficiencia_select" onchange="toggleDeficiencia()">
+        <option value="nao" {% if not aluno or aluno.deficiencia != 'sim' %}selected{% endif %}>Nao</option>
+        <option value="sim" {% if aluno and aluno.deficiencia == 'sim' %}selected{% endif %}>Sim</option>
+      </select>
+    </div>
+    <div class="form-group" id="desc_deficiencia_group" style="display:{% if aluno and aluno.deficiencia == 'sim' %}block{% else %}none{% endif %}">
+      <label>Descricao da Deficiencia</label>
+      <textarea name="desc_deficiencia" rows="3" placeholder="Ex: TEA, TDAH, Deficiencia auditiva, Baixa visao, Deficiencia fisica">{{ aluno.desc_deficiencia if aluno else '' }}</textarea>
+    </div>
     <div class="form-actions">
       <a href="{{ url_for('alunos') }}" class="btn btn-outline">Cancelar</a>
       <button type="submit" class="btn btn-success">{{ 'Salvar' if aluno else 'Cadastrar' }}</button>
     </div>
   </form>
 </div>
+<script>
+function toggleDeficiencia() {
+  var sel = document.getElementById('deficiencia_select');
+  var desc = document.getElementById('desc_deficiencia_group');
+  desc.style.display = sel.value === 'sim' ? 'block' : 'none';
+}
+</script>
 {% endblock %}

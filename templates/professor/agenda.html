@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Agenda — Sistema Escolar (beta){% endblock %}
-{% block page_title %}📆 Agenda Escolar{% endblock %}
+{% block page_title %} Agenda Escolar{% endblock %}
 {% block content %}
 <div class="card" style="margin-bottom:20px">
   <div class="card-header"><h2>Agendar Evento</h2></div>
@@ -47,7 +47,7 @@
           <td>{{ e.titulo }}</td>
           <td><span class="badge {% if e.tipo == 'Prova' %}badge-danger{% elif e.tipo == 'Feriado' %}badge-success{% else %}badge-primary{% endif %}">{{ e.tipo }}</span></td>
           <td><span class="badge badge-primary">{{ e.turma }}</span></td>
-          <td><a href="{{ url_for('agenda_excluir', id=e.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir este evento?')">🗑️</a></td>
+          <td><a href="{{ url_for('agenda_excluir', id=e.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir este evento?')"></a></td>
         </tr>
         {% endfor %}
         {% if not eventos %}

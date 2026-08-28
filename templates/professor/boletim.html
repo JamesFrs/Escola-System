@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Boletim — {{ aluno.nome }}{% endblock %}
-{% block page_title %}📄 Boletim — {{ aluno.nome }}{% endblock %}
+{% block page_title %} Boletim — {{ aluno.nome }}{% endblock %}
 {% block content %}
 <div class="card-header" style="margin-bottom:20px">
   <a href="{{ url_for('alunos') }}" class="btn btn-outline">← Voltar</a>
-  <a href="{{ url_for('boletim_pdf', codigo=aluno.codigo) }}" class="btn btn-primary" target="_blank">📥 Gerar PDF</a>
+  <a href="{{ url_for('boletim_pdf', codigo=aluno.codigo) }}" class="btn btn-primary" target="_blank"> Gerar PDF</a>
 </div>
 
 <div class="card" style="margin-bottom:20px">

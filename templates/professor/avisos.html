@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Avisos — Sistema Escolar (beta){% endblock %}
-{% block page_title %}📢 Mural de Avisos{% endblock %}
+{% block page_title %} Mural de Avisos{% endblock %}
 {% block content %}
 <div class="card" style="margin-bottom:20px">
   <div class="card-header"><h2>Publicar Aviso</h2></div>
@@ -37,8 +37,8 @@
           <td><small>{{ a.criado_por }} <span class="badge {% if a.criado_por_funcao == 'professor' %}badge-success{% else %}badge-warning{% endif %}" style="font-size:0.7rem">{{ a.criado_por_funcao }}</span></small></td>
           <td>{{ a.data }}</td>
           <td class="actions">
-            <button class="btn btn-sm btn-outline" onclick="editarAviso({{ a.id }}, '{{ a.titulo }}', `{{ a.descricao }}`, '{{ a.turma }}')">✏️</button>
-            <a href="{{ url_for('aviso_excluir', id=a.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir este aviso?')" style="color:var(--danger)">🗑️</a>
+            <button class="btn btn-sm btn-outline" onclick="editarAviso({{ a.id }}, '{{ a.titulo }}', `{{ a.descricao }}`, '{{ a.turma }}')"></button>
+            <a href="{{ url_for('aviso_excluir', id=a.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir este aviso?')" style="color:var(--danger)"></a>
           </td>
         </tr>
         {% endfor %}
@@ -52,7 +52,7 @@
 
 <div id="modalEditar" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
   <div style="background:var(--bg-card);border-radius:16px;padding:24px;width:500px;box-shadow:var(--shadow-lg)">
-    <h3 style="margin-bottom:16px">✏️ Editar Aviso</h3>
+    <h3 style="margin-bottom:16px"> Editar Aviso</h3>
     <form method="POST" id="formEditar">
       <div class="form-group"><label>Título</label><input type="text" name="titulo" id="inputTitulo" required></div>
       <div class="form-group"><label>Descrição</label><textarea name="descricao" id="inputDescricao" rows="3" required></textarea></div>

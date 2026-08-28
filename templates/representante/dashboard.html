@@ -1,36 +1,32 @@
 {% extends "base.html" %}
 {% block title %}Representante — Dashboard{% endblock %}
-{% block page_title_rep %}📊 Dashboard{% endblock %}
+{% block page_title_rep %} Dashboard{% endblock %}
 {% block content_rep %}
 <div class="portal-welcome">
-  <h2>Olá, {{ session.user_name }}! 👋</h2>
+  <h2>Olá, {{ session.user_name }}! </h2>
   <p>Turma: <strong>{{ turma }}</strong> — {{ funcao|capitalize }}</p>
 </div>
 
 <div class="stats-grid">
-  <div class="stat-card">
-    <div class="stat-icon blue">✅</div>
+  <div class="stat-card blue">
     <div class="stat-info">
       <h3>{{ freq_pendente }}</h3>
-      <p>Frequências Pendentes</p>
+      <p>Frequencias Pendentes</p>
     </div>
   </div>
-  <div class="stat-card">
-    <div class="stat-icon red">📅</div>
+  <div class="stat-card red">
     <div class="stat-info">
       <h3>{{ provas_pendentes }}</h3>
       <p>Provas Pendentes</p>
     </div>
   </div>
-  <div class="stat-card">
-    <div class="stat-icon orange">📋</div>
+  <div class="stat-card orange">
     <div class="stat-info">
       <h3>{{ demandas_abertas }}</h3>
       <p>Demandas Abertas</p>
     </div>
   </div>
-  <div class="stat-card">
-    <div class="stat-icon purple">📊</div>
+  <div class="stat-card purple">
     <div class="stat-info">
       <h3>{{ enquetes_ativas }}</h3>
       <p>Enquetes Ativas</p>
@@ -40,22 +36,22 @@
 
 <div class="grid-2">
   <div class="card">
-    <div class="card-header"><h2>⚡ Acesso Rápido</h2></div>
+    <div class="card-header"><h2> Acesso Rápido</h2></div>
     <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <a href="{{ url_for('rep_frequencia') }}" class="btn btn-primary btn-full">✅ Frequência</a>
-      <a href="{{ url_for('rep_avisos') }}" class="btn btn-primary btn-full">📢 Avisos</a>
-      <a href="{{ url_for('rep_provas') }}" class="btn btn-primary btn-full">📅 Provas</a>
-      <a href="{{ url_for('rep_demandas') }}" class="btn btn-primary btn-full">📋 Demandas</a>
-      <a href="{{ url_for('rep_sugestoes') }}" class="btn btn-primary btn-full">💡 Sugestões</a>
-      <a href="{{ url_for('rep_enquetes') }}" class="btn btn-primary btn-full">📊 Enquetes</a>
-      <a href="{{ url_for('rep_reunioes') }}" class="btn btn-primary btn-full">🤝 Reuniões</a>
-      <a href="{{ url_for('rep_alunos') }}" class="btn btn-primary btn-full">👨‍🎓 Alunos</a>
-      <a href="{{ url_for('rep_calendario') }}" class="btn btn-primary btn-full" style="grid-column:span 2">📆 Calendário</a>
+      <a href="{{ url_for('rep_frequencia') }}" class="btn btn-primary btn-full"> Frequência</a>
+      <a href="{{ url_for('rep_avisos') }}" class="btn btn-primary btn-full"> Avisos</a>
+      <a href="{{ url_for('rep_provas') }}" class="btn btn-primary btn-full"> Provas</a>
+      <a href="{{ url_for('rep_demandas') }}" class="btn btn-primary btn-full"> Demandas</a>
+      <a href="{{ url_for('rep_sugestoes') }}" class="btn btn-primary btn-full"> Sugestões</a>
+      <a href="{{ url_for('rep_enquetes') }}" class="btn btn-primary btn-full"> Enquetes</a>
+      <a href="{{ url_for('rep_reunioes') }}" class="btn btn-primary btn-full"> Reuniões</a>
+      <a href="{{ url_for('rep_alunos') }}" class="btn btn-primary btn-full"> Alunos</a>
+      <a href="{{ url_for('rep_calendario') }}" class="btn btn-primary btn-full" style="grid-column:span 2"> Calendário</a>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-header"><h2>📢 Últimos Avisos</h2></div>
+    <div class="card-header"><h2> Últimos Avisos</h2></div>
     <div class="table-container">
       <table>
         <thead><tr><th>Título</th><th>Data</th></tr></thead>
@@ -76,7 +72,7 @@
 </div>
 
 <div class="card" style="margin-top:20px">
-  <div class="card-header"><h2>📝 Minhas Notas</h2></div>
+  <div class="card-header"><h2> Minhas Notas</h2></div>
   <div class="table-container">
     <table>
       <thead><tr><th>Disciplina</th><th>Nota</th><th>Situação</th></tr></thead>
@@ -105,7 +101,7 @@
 
 <div class="grid-2" style="margin-top:20px">
   <div class="card">
-    <div class="card-header"><h2>✅ Minha Frequência</h2></div>
+    <div class="card-header"><h2> Minha Frequência</h2></div>
     <div class="table-container">
       <table>
         <thead><tr><th>Disciplina</th><th>Presenças</th><th>Faltas</th><th>%</th></tr></thead>
@@ -130,7 +126,7 @@
   </div>
 
   <div class="card">
-    <div class="card-header"><h2>📅 Próximas Provas</h2></div>
+    <div class="card-header"><h2> Próximas Provas</h2></div>
     <div class="table-container">
       <table>
         <thead><tr><th>Data</th><th>Disciplina</th><th>Tipo</th></tr></thead>
