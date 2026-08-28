@@ -54,7 +54,7 @@
             <a href="{{ url_for('turma_alunos', id=t.id) }}" class="btn btn-sm btn-primary">Gerenciar</a>
             <a href="{{ url_for('turma_representantes', id=t.id) }}" class="btn btn-sm btn-outline">Rep.</a>
             <button class="btn btn-sm btn-outline" onclick="editarTurma({{ t.id }}, '{{ t.nome }}', '{{ t.turno }}')">Editar</button>
-            <a href="{{ url_for('turma_excluir', id=t.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir a turma {{ t.nome }}?')" style="color:var(--danger)">Excluir</a>
+            <a href="{{ url_for('turma_excluir', id=t.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Excluir a turma {{ t.nome }}?')">Excluir</a>
           </td>
         </tr>
         {% endfor %}

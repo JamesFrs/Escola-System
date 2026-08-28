@@ -29,7 +29,7 @@
           <td>{{ p.descricao }}</td>
           <td>{{ p.professor }}</td>
           <td>{{ p.data }}</td>
-          <td><a href="{{ url_for('pendencia_excluir', id=p.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Remover esta pendência?')"></a></td>
+          <td><a href="{{ url_for('pendencia_excluir', id=p.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Remover esta pendencia?')">Remover</a></td>
         </tr>
         {% endfor %}
         {% if not pendencias %}

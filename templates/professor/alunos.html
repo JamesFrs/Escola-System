@@ -55,9 +55,9 @@
           <td><span class="badge badge-primary">{{ a.turma }}</span></td>
           <td>{{ a.nascimento or '-' }}</td>
           <td class="actions">
-            <a href="{{ url_for('aluno_perfil', id=a.id) }}" class="btn btn-sm btn-outline">Perfil</a>
+            <a href="{{ url_for('aluno_perfil', id=a.id) }}" class="btn btn-sm btn-primary">Perfil</a>
             <a href="{{ url_for('aluno_editar', id=a.id) }}" class="btn btn-sm btn-outline">Editar</a>
-            <a href="{{ url_for('aluno_excluir', id=a.id) }}" class="btn btn-sm btn-outline" style="color:var(--danger)" onclick="return confirm('Tem certeza?')">Excluir</a>
+            <a href="{{ url_for('aluno_excluir', id=a.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza?')">Excluir</a>
           </td>
         </tr>
         {% endfor %}

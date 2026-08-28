@@ -32,9 +32,9 @@
           <td class="actions">
             {% if e.criado_por == session.user_codigo %}
             {% if e.ativa %}
-            <a href="{{ url_for('rep_enquete_fechar', id=e.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Encerrar enquete?')">⏹</a>
+            <a href="{{ url_for('rep_enquete_fechar', id=e.id) }}" class="btn btn-sm btn-warning" onclick="return confirm('Encerrar enquete?')">Encerrar</a>
             {% endif %}
-            <a href="{{ url_for('rep_enquete_excluir', id=e.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir?')" style="color:var(--danger)"></a>
+            <a href="{{ url_for('rep_enquete_excluir', id=e.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Excluir?')">Excluir</a>
             {% endif %}
           </td>
         </tr>

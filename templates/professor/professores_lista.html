@@ -24,8 +24,8 @@
         </p>
       </div>
       <div style="display:flex;gap:8px">
-        <a href="{{ url_for('professor_editar', id=p.id) }}" class="btn btn-sm btn-outline" onclick="event.stopPropagation()"></a>
-        <a href="{{ url_for('professor_excluir', id=p.id) }}" class="btn btn-sm btn-outline" onclick="event.stopPropagation();return confirm('Excluir este professor?')" style="color:var(--danger)"></a>
+        <a href="{{ url_for('professor_editar', id=p.id) }}" class="btn btn-sm btn-outline" onclick="event.stopPropagation()">Editar</a>
+        <a href="{{ url_for('professor_excluir', id=p.id) }}" class="btn btn-sm btn-danger" onclick="event.stopPropagation();return confirm('Excluir este professor?')">Excluir</a>
       </div>
     </div>
   </div>

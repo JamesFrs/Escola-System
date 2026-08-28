@@ -25,8 +25,8 @@
           <td>{{ r.resumo or '-' }}</td>
           <td class="actions">
             {% if r.criado_por == session.user_codigo %}
-            <button class="btn btn-sm btn-outline" onclick="editarReuniao({{ r.id }}, '{{ r.data }}', `{{ r.assuntos }}`, `{{ r.resumo }}`)"></button>
-            <a href="{{ url_for('rep_reuniao_excluir', id=r.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir?')" style="color:var(--danger)"></a>
+            <button class="btn btn-sm btn-outline" onclick="editarReuniao({{ r.id }}, '{{ r.data }}', `{{ r.assuntos }}`, `{{ r.resumo }}`)">Editar</button>
+            <a href="{{ url_for('rep_reuniao_excluir', id=r.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Excluir?')">Excluir</a>
             {% endif %}
           </td>
         </tr>

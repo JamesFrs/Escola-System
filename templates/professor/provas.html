@@ -82,7 +82,7 @@
           <td>{{ p.disciplina }}</td>
           <td><span class="badge {% if p.tipo == 'Prova' %}badge-danger{% elif p.tipo == 'Trabalho' %}badge-warning{% else %}badge-success{% endif %}">{{ p.tipo }}</span></td>
           <td>{{ p.conteudo or '-' }}</td>
-          <td><a href="{{ url_for('prova_excluir', id=p.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir esta prova?')"></a></td>
+          <td><a href="{{ url_for('prova_excluir', id=p.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Excluir esta prova?')">Excluir</a></td>
         </tr>
         {% endfor %}
         {% if not provas %}

@@ -30,8 +30,8 @@
           <td>{{ a.data }}</td>
           <td class="actions">
             {% if a.criado_por == session.user_codigo %}
-            <button class="btn btn-sm btn-outline" onclick="editarAviso({{ a.id }}, '{{ a.titulo }}', `{{ a.descricao }}`)"></button>
-            <a href="{{ url_for('rep_aviso_excluir', id=a.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir este aviso?')" style="color:var(--danger)"></a>
+            <button class="btn btn-sm btn-outline" onclick="editarAviso({{ a.id }}, '{{ a.titulo }}', `{{ a.descricao }}`)">Editar</button>
+            <a href="{{ url_for('rep_aviso_excluir', id=a.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Excluir este aviso?')">Excluir</a>
             {% endif %}
           </td>
         </tr>

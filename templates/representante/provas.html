@@ -32,8 +32,8 @@
           <td><span class="badge {% if p.status == 'confirmada' %}badge-success{% else %}badge-warning{% endif %}">{{ p.status }}</span></td>
           <td class="actions">
             {% if p.criado_por == session.user_codigo and p.status == 'pendente' %}
-            <button class="btn btn-sm btn-outline" onclick="editarProva({{ p.id }}, '{{ p.disciplina }}', '{{ p.data }}', `{{ p.conteudo }}`, `{{ p.observacao }}`)"></button>
-            <a href="{{ url_for('rep_prova_excluir', id=p.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir?')" style="color:var(--danger)"></a>
+            <button class="btn btn-sm btn-outline" onclick="editarProva({{ p.id }}, '{{ p.disciplina }}', '{{ p.data }}', `{{ p.conteudo }}`, `{{ p.observacao }}`)">Editar</button>
+            <a href="{{ url_for('rep_prova_excluir', id=p.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Excluir?')">Excluir</a>
             {% endif %}
           </td>
         </tr>

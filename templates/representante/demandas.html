@@ -30,8 +30,8 @@
           <td class="actions">
             {% if d.resposta %}<br><small style="color:var(--text-secondary)"> {{ d.resposta }}</small>{% endif %}
             {% if d.status in ('Enviada', 'Em análise') %}
-            <button class="btn btn-sm btn-outline" onclick="editarDemanda({{ d.id }}, '{{ d.titulo }}', '{{ d.categoria }}', `{{ d.descricao }}`)"></button>
-            <a href="{{ url_for('rep_demanda_excluir', id=d.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir?')" style="color:var(--danger)"></a>
+            <button class="btn btn-sm btn-outline" onclick="editarDemanda({{ d.id }}, '{{ d.titulo }}', '{{ d.categoria }}', `{{ d.descricao }}`)">Editar</button>
+            <a href="{{ url_for('rep_demanda_excluir', id=d.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Excluir?')">Excluir</a>
             {% endif %}
           </td>
         </tr>

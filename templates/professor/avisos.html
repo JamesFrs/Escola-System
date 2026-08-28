@@ -37,8 +37,8 @@
           <td><small>{{ a.criado_por }} <span class="badge {% if a.criado_por_funcao == 'professor' %}badge-success{% else %}badge-warning{% endif %}" style="font-size:0.7rem">{{ a.criado_por_funcao }}</span></small></td>
           <td>{{ a.data }}</td>
           <td class="actions">
-            <button class="btn btn-sm btn-outline" onclick="editarAviso({{ a.id }}, '{{ a.titulo }}', `{{ a.descricao }}`, '{{ a.turma }}')"></button>
-            <a href="{{ url_for('aviso_excluir', id=a.id) }}" class="btn btn-sm btn-outline" onclick="return confirm('Excluir este aviso?')" style="color:var(--danger)"></a>
+            <button class="btn btn-sm btn-outline" onclick="editarAviso({{ a.id }}, '{{ a.titulo }}', `{{ a.descricao }}`, '{{ a.turma }}')">Editar</button>
+            <a href="{{ url_for('aviso_excluir', id=a.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Excluir este aviso?')">Excluir</a>
           </td>
         </tr>
         {% endfor %}
