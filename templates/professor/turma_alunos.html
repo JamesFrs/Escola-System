@@ -1,18 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Alunos da Turma {{ turma.nome }} — Sistema Escolar (beta){% endblock %}
-{% block page_title %} Turma: {{ turma.nome }}{% endblock %}
+{% block title %}Alunos da Turma {{ turma.nome }}{% endblock %}
+{% block page_title %}Turma: {{ turma.nome }}{% endblock %}
 {% block content %}
 <div class="card-header" style="margin-bottom:20px">
-  <a href="{{ url_for('turmas_lista') }}" class="btn btn-outline">← Voltar</a>
+  <a href="{{ url_for('turmas_lista') }}" class="btn btn-outline">Voltar</a>
   <span style="color:var(--text-secondary)">{{ alunos|length }} aluno(s) nesta turma</span>
 </div>
 
-<!-- Adicionar aluno existente de outra turma -->
 {% if outros %}
 <div class="card" style="margin-bottom:20px">
-  <div class="card-header" style="cursor:pointer" onclick="toggleOutros()">
+  <div class="card-header" style="cursor:pointer;user-select:none" id="headerOutros" onclick="toggleOutros()">
     <h2>Adicionar Aluno de Outra Turma ({{ outros|length }})</h2>
-    <span id="arrowOutros" style="font-size:12px;transition:transform 0.2s">&#9660;</span>
+    <span id="arrowOutros" style="font-size:11px;transition:transform 0.2s;display:inline-block">&#9660;</span>
   </div>
   <div id="listaOutros" style="display:none">
     <div class="table-container">
@@ -39,12 +38,11 @@
 </div>
 {% endif %}
 
-<!-- Alunos da turma -->
 <div class="card">
-  <div class="card-header"><h2> Alunos desta Turma</h2></div>
+  <div class="card-header"><h2>Alunos desta Turma</h2></div>
   <div class="table-container">
     <table>
-      <thead><tr><th>Nome</th><th>Código</th><th>Nascimento</th><th>Ações</th></tr></thead>
+      <thead><tr><th>Nome</th><th>Codigo</th><th>Nascimento</th><th>Acoes</th></tr></thead>
       <tbody>
         {% for a in alunos %}
         <tr>
@@ -59,10 +57,10 @@
           <td>{{ a.codigo }}</td>
           <td>{{ a.nascimento or '-' }}</td>
           <td class="actions">
-            <a href="{{ url_for('aluno_perfil', id=a.id) }}" class="btn btn-sm btn-outline" title="Ver perfil"></a>
-            <a href="{{ url_for('aluno_editar', id=a.id) }}" class="btn btn-sm btn-outline" title="Editar"></a>
-            <button class="btn btn-sm btn-outline" title="Mover para outra turma" onclick="abrirModalMover('{{ a.codigo }}', '{{ a.nome }}')"> Mover</button>
-            <button class="btn btn-sm btn-outline" title="Remover do sistema" style="color:var(--danger)" onclick="abrirModalRemover('{{ a.codigo }}', '{{ a.nome }}')"> Remover</button>
+            <a href="{{ url_for('aluno_perfil', id=a.id) }}" class="btn btn-sm btn-primary">Perfil</a>
+            <a href="{{ url_for('aluno_editar', id=a.id) }}" class="btn btn-sm btn-outline">Editar</a>
+            <button class="btn btn-sm btn-warning" onclick="abrirModalMover('{{ a.codigo }}', '{{ a.nome }}')">Mover</button>
+            <button class="btn btn-sm btn-danger" onclick="abrirModalRemover('{{ a.codigo }}', '{{ a.nome }}')">Remover</button>
           </td>
         </tr>
         {% endfor %}
@@ -74,10 +72,9 @@
   </div>
 </div>
 
-<!-- Modal Mover -->
 <div id="modalMover" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
-  <div style="background:var(--bg-card);border-radius:16px;padding:24px;width:420px;box-shadow:var(--shadow-lg)">
-    <h3 style="margin-bottom:16px"> Mover Aluno</h3>
+  <div style="background:var(--bg-card);border-radius:16px;padding:24px;width:420px;border:1px solid var(--border)">
+    <h3 style="margin-bottom:16px">Mover Aluno</h3>
     <p style="margin-bottom:16px;color:var(--text-secondary)">Mover <strong id="nomeMover"></strong> para:</p>
     <form method="POST" action="{{ url_for('turma_mover_aluno', id=turma.id) }}">
       <input type="hidden" name="codigo" id="codigoMover">
@@ -97,12 +94,11 @@
   </div>
 </div>
 
-<!-- Modal Remover -->
 <div id="modalRemover" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
-  <div style="background:var(--bg-card);border-radius:16px;padding:24px;width:420px;box-shadow:var(--shadow-lg)">
-    <h3 style="margin-bottom:16px;color:var(--danger)"> Remover Aluno</h3>
+  <div style="background:var(--bg-card);border-radius:16px;padding:24px;width:420px;border:1px solid var(--border)">
+    <h3 style="margin-bottom:16px;color:var(--danger)">Remover Aluno</h3>
     <p style="margin-bottom:16px">Tem certeza que deseja excluir <strong id="nomeRemover"></strong> do sistema?</p>
-    <p style="margin-bottom:16px;color:var(--danger);font-size:13px"> Esta ação irá excluir todas as notas, frequência e pendências do aluno.</p>
+    <p style="margin-bottom:16px;color:var(--danger);font-size:13px">Esta acao ira excluir todas as notas, frequencia e pendencias do aluno.</p>
     <form method="POST" action="{{ url_for('turma_remover_aluno', id=turma.id) }}">
       <input type="hidden" name="codigo" id="codigoRemover">
       <div style="display:flex;gap:8px;justify-content:flex-end">
@@ -114,6 +110,17 @@
 </div>
 
 <script>
+function toggleOutros() {
+  var el = document.getElementById('listaOutros');
+  var arrow = document.getElementById('arrowOutros');
+  if (el.style.display === 'none' || el.style.display === '') {
+    el.style.display = 'block';
+    arrow.innerHTML = '&#9650;';
+  } else {
+    el.style.display = 'none';
+    arrow.innerHTML = '&#9660;';
+  }
+}
 function abrirModalMover(codigo, nome) {
   document.getElementById('codigoMover').value = codigo;
   document.getElementById('nomeMover').textContent = nome;
@@ -126,17 +133,6 @@ function abrirModalRemover(codigo, nome) {
 }
 function fecharModal(id) {
   document.getElementById(id).style.display = 'none';
-}
-function toggleOutros() {
-  const el = document.getElementById('listaOutros');
-  const arrow = document.getElementById('arrowOutros');
-  if (el.style.display === 'none') {
-    el.style.display = 'block';
-    arrow.style.transform = 'rotate(180deg)';
-  } else {
-    el.style.display = 'none';
-    arrow.style.transform = 'rotate(0deg)';
-  }
 }
 </script>
 {% endblock %}
