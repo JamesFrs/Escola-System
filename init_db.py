@@ -342,6 +342,57 @@ def init_db():
             c.execute("INSERT INTO professores (nome, email, senha, disciplina, turmas, turnos, bio) VALUES (?, ?, ?, ?, ?, ?, '')",
                       (nome, email, generate_password_hash('123456'), disc, turmas_prof, turnos))
 
+    # Seed: nascimento, notas e frequencia dos alunos
+    import random as _random
+    _random.seed(42)
+    disciplinas = ['Matemática', 'Português', 'História', 'Geografia', 'Ciências', 'Inglês', 'Educação Física', 'Artes']
+    alunos_rows = c.execute("SELECT codigo, turma FROM alunos ORDER BY turma, nome").fetchall()
+
+    # Nascimento
+    for codigo, turma in alunos_rows:
+        existe = c.execute("SELECT nascimento FROM alunos WHERE codigo=? AND nascimento IS NOT NULL AND nascimento != ''", (codigo,)).fetchone()
+        if not existe or not existe[0]:
+            ano_num = int(turma[0]) if turma and turma[0].isdigit() else 1
+            idade = _random.randint(11 + (ano_num-1)*2, 13 + (ano_num-1)*2)
+            nasc = f"{2026 - idade}-{_random.randint(1,12):02d}-{_random.randint(1,28):02d}"
+            c.execute("UPDATE alunos SET nascimento=? WHERE codigo=?", (nasc, codigo))
+
+    # Notas
+    notas_existentes = c.execute("SELECT COUNT(*) FROM notas").fetchone()[0]
+    if notas_existentes == 0:
+        for codigo, turma in alunos_rows:
+            for bimestre in [1, 2]:
+                for disc in disciplinas:
+                    nota = round(_random.uniform(3.0, 10.0), 1)
+                    c.execute("INSERT OR REPLACE INTO notas (codigo_aluno, disciplina, nota, bimestre) VALUES (?, ?, ?, ?)",
+                              (codigo, disc, nota, bimestre))
+
+    # Frequencia - 20 dias uteis atras
+    freq_existentes = c.execute("SELECT COUNT(*) FROM frequencia").fetchone()[0]
+    if freq_existentes == 0:
+        dias_uteis = []
+        from datetime import datetime, timedelta
+        data_atual = datetime(2026, 8, 28)
+        while len(dias_uteis) < 20:
+            data_atual -= timedelta(days=1)
+            if data_atual.weekday() < 5:
+                dias_uteis.append(data_atual.strftime('%Y-%m-%d'))
+        dias_uteis.reverse()
+
+        turmas_map = {}
+        for codigo, turma in alunos_rows:
+            turmas_map.setdefault(turma, []).append(codigo)
+
+        for turma, codigos in turmas_map.items():
+            for codigo in codigos:
+                for disc in _random.sample(disciplinas, 3):
+                    for dia in dias_uteis:
+                        r = _random.random()
+                        presente = 1 if r < 0.85 else 0
+                        atestado = 1 if 0.85 <= r < 0.90 else 0
+                        c.execute("INSERT OR REPLACE INTO frequencia (codigo_aluno, disciplina, turma, data, presente, atestado, bimestre) VALUES (?, ?, ?, ?, ?, ?, 1)",
+                                  (codigo, disc, turma, dia, presente, atestado))
+
     conn.commit()
     conn.close()
     print("Banco de dados inicializado com sucesso!")
